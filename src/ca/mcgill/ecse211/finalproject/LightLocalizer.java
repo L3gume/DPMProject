@@ -34,7 +34,7 @@ public class LightLocalizer {
   /**
    * TODO
    */
-  public synchronized void localize() {
+  public void localize() {
     // ...
   }
 

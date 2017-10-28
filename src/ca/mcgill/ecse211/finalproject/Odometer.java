@@ -95,20 +95,21 @@ public class Odometer extends Thread {
       // Get the current change in orientation.
       deltaT = (distL - distR) / FinalProject.TRACK;
 
+
+      tmpTheta = getTheta() + deltaT; // getTheta() is synchronized so we can safely access theta
+
+      // Ensure that the new theta is between 0 and 2*pi radians.
+      while (tmpTheta > Odometer.THETA_MAX) {
+        tmpTheta -= Odometer.THETA_MAX;
+      }
+      while (tmpTheta < Odometer.THETA_MIN) {
+        tmpTheta += Odometer.THETA_MAX;
+      }
+
+      deltaX = deltaD * Math.sin(tmpTheta);
+      deltaY = deltaD * Math.sin(tmpTheta);
+
       synchronized (this.lock) {
-        tmpTheta = this.theta + deltaT;
-
-        // Ensure that the new theta is between 0 and 2*pi radians.
-        while (tmpTheta > Odometer.THETA_MAX) {
-          tmpTheta -= Odometer.THETA_MAX;
-        }
-        while (tmpTheta < Odometer.THETA_MIN) {
-          tmpTheta += Odometer.THETA_MAX;
-        }
-
-        deltaX = deltaD * Math.sin(tmpTheta);
-        deltaY = deltaD * Math.sin(tmpTheta);
-
         // Update the current values of x, y, and theta.
         this.theta = tmpTheta;
         this.x += deltaX;
@@ -130,6 +131,16 @@ public class Odometer extends Thread {
     // Unreachable
   }
 
+  private double wrapAngle(double theta) {
+    // Ensure that the new theta is between 0 and 2*pi radians.
+    while (tmpTheta > Odometer.THETA_MAX) {
+      theta -= Odometer.THETA_MAX;
+    }
+    while (tmpTheta < Odometer.THETA_MIN) {
+      theta += Odometer.THETA_MAX;
+    }
+    return theta
+  }
 
   /**
    * TODO

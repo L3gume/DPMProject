@@ -100,8 +100,8 @@ public class FinalProject {
     // ZipLine
     //
 
-    // Create ZipLineController object.
-//    ZipLineController zipLineController = new ZipLineController( [> ... <] );
+    // Create MainController object.
+//    MainController zipLineController = new MainController( [> ... <] );
 
     // Start data threads.
     usPoller.start();

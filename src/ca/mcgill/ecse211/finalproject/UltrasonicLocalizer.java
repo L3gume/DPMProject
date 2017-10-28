@@ -32,9 +32,9 @@ public class UltrasonicLocalizer {
 
 
   /**
-   * TODO
+   * TODO: Intially check the ultrasonic sensor reading to determine whether to do rising or falling edge localization.
    */
-  public synchronized void localize() {
+  public void localize() {
     // ...
   }
 

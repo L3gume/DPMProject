@@ -10,7 +10,7 @@ public class Driver {
   // Constants
   // --------------------------------------------------------------------------------
 
-  public static enum State {
+  public enum State {
 	UNKNOWN,
     MOVING_FORWARD,
     MOVING_BACKWARD,
