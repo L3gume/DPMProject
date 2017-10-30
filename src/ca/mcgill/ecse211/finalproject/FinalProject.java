@@ -10,8 +10,9 @@ import lejos.hardware.sensor.EV3UltrasonicSensor;
 import lejos.hardware.sensor.SensorModes;
 import lejos.robotics.SampleProvider;
 
-
-
+/**
+ * Main class, contains the constants, motors, sensors and the main() method.
+ */
 public class FinalProject {
 
   public static final boolean DEBUG = false;
@@ -26,7 +27,7 @@ public class FinalProject {
 
   // Odometry-related constants
   public static final double WHEEL_RADIUS = 2.1;
-  public static final double TRACK = 11.75;
+  public static final double WHEEL_BASE = 11.75;
 
   // Driver-related constants
   public static final int SPEED_FWD = 175;
@@ -57,7 +58,7 @@ public class FinalProject {
   // --------------------------------------------------------------------------------
   
   /**
-   * TODO
+   * Main method of the program, this is where all the objects are initialized and all the threads are started.
    */
   public static void main(String[] args) {
     // Suppress the warning we would reserve, since we do not close certain resources below.
@@ -81,11 +82,11 @@ public class FinalProject {
 
     // Create UltrasonicPoller and LightPoller objects.
     UltrasonicPoller usPoller = new UltrasonicPoller(usSampleProvider, sd);
-    LightPoller lsPoller = new LightPoller(lsSampleProvider, sd);
+    //LightPoller lsPoller = new LightPoller(lsSampleProvider, sd);
 
     // Create Odometer object.
     Odometer odometer = new Odometer(
-        FinalProject.leftMotor, FinalProject.rightMotor, FinalProject.WHEEL_RADIUS, FinalProject.TRACK
+        FinalProject.leftMotor, FinalProject.rightMotor, FinalProject.WHEEL_RADIUS, FinalProject.WHEEL_BASE
         );
 
     //
@@ -105,16 +106,14 @@ public class FinalProject {
 
     // Start data threads.
     usPoller.start();
-    lsPoller.start();
+    //lsPoller.start();
     odometer.start();
 
     // Start the main controller thread.
 //    zipLineController.start();
 
     // Kill this program whenever the escape button is pressed on the EV3.
-    while (Button.waitForAnyPress() != Button.ID_ESCAPE) {
-      // ...
-    }
+    while (Button.waitForAnyPress() != Button.ID_ESCAPE);
 
     System.exit(0);
   }
@@ -126,13 +125,14 @@ public class FinalProject {
 
   /**
    * Display the main menu, querying the user for a pair of X/Y-coordinates.
+   *
    * @param t the EV3 LCD display to which the main menu should be output
    * @param title the title to display in the menu
    * @param llim the lower limit allowed for an X/Y-coordinate
    * @param ulim the upper limit allowed for an X/Y-coordinate
    * @return a Waypoint object holding an X/Y-coordinate pair
    */
-  static Waypoint getCoordinates(final TextLCD t, String title, int llim, int ulim) {
+  private static Waypoint getCoordinates(final TextLCD t, String title, int llim, int ulim) {
     boolean done = false;
 
     // Clear the display.
@@ -212,5 +212,4 @@ public class FinalProject {
 
     return waypoint;
   }
-
 }

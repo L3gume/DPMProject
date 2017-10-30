@@ -1,8 +1,16 @@
 package ca.mcgill.ecse211.finalproject;
 
+/**
+ * Main controller
+ * This class is the main thread of the program and the root of the state machine that will control every action.
+ *
+ * @author Justin Tremblay
+ */
 public class MainController extends Thread {
 
-  // Enum describing the state of the controller.
+  /**
+   * Enum describing the state of the controller.
+   */
   public enum State { IDLE, LOCALIZING, NAVIGATING, ZIPLINING, SEARCHING };
 
   // --------------------------------------------------------------------------------
@@ -21,15 +29,16 @@ public class MainController extends Thread {
   private ZipLine zipLine;
 
   private State cur_state = State.IDLE; // Current state of the controller
-  private String sub_state = null; // State of the currently executing subsystem
+  private String sub_state = null; // D_State of the currently executing subsystem
 
   /**
    * Constructor
    *
-   * @param ultrasonicLocalizer TODO
-   * @param lightLocalizer TODO
-   * @param navigator TODO
-   * @param zipLine TODO
+   * @param localizer Localizer object, manages the localization of the robot.
+   * @param ultrasonicLocalizer Ultrasonic localizer, works with the Localizer class to localize the robot
+   * @param lightLocalizer Light localizer, works with the Localizer class to localize the robot
+   * @param navigator Navigator, handles navigating the robot through sets of waypoints as well as avoiding obstacles
+   * @param zipLine Zipline controller, handles crossing the zip line.
    */
   public MainController(Localizer localizer, UltrasonicLocalizer ultrasonicLocalizer, LightLocalizer lightLocalizer, Navigator navigator, ZipLine zipLine) {
     this.localizer = localizer;
@@ -100,11 +109,21 @@ public class MainController extends Thread {
     }
   }
 
+  /**
+   * Processes the IDLE state of the main controller.
+   *
+   * @return new state, or same one if no goal.
+   */
   private State process_idle() {
     // TODO: Integrate the wifi class to determine the robot's goal.
     return State.IDLE;
   }
 
+  /**
+   * Processes the LOCALIZING state of the main controller, delegates control to the Localizer.
+   *
+   * @return new state, or same one if not done.
+   */
   private State process_localizing() {
     sub_state = localizer.process(); // the localizer handles controlling both the ultrasonic and light localizers.
 
@@ -118,6 +137,11 @@ public class MainController extends Thread {
     return State.IDLE;
   }
 
+  /**
+   * Processes the NAVIGATING state of the main controller, delegates control to the Navigator.
+   *
+   * @return new state, or same one if not done.
+   */
   private State process_navigating() {
     sub_state = navigator.process();
 
@@ -131,6 +155,11 @@ public class MainController extends Thread {
     return State.IDLE;
   }
 
+  /**
+   * Processes the ZIPLINING state of the main controller, delegates control to the Zipline class.
+   *
+   * @return new state, or same one if not done.
+   */
   private State process_ziplining() {
     sub_state = zipLine.process();
 
@@ -144,6 +173,12 @@ public class MainController extends Thread {
     return State.IDLE;
   }
 
+  /**
+   * Processes the SEARCHING state of the main controller, delegates control to the Searcher class. This state is a special
+   * case as it will also use the navigator to move the robot.
+   *
+   * @return new state, or same one if not done.
+   */
   private State process_searching() {
     // TODO: Implement the Searcher class.
     return State.IDLE;

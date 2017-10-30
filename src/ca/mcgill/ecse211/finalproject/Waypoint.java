@@ -1,7 +1,10 @@
 package ca.mcgill.ecse211.finalproject;
 
-
-
+/**
+ * Simple abstraction to represent grid points.
+ *
+ * @author Justin Tremblay
+ */
 public class Waypoint {
 
   // --------------------------------------------------------------------------------

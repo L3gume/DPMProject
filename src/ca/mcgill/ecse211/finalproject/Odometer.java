@@ -2,8 +2,11 @@ package ca.mcgill.ecse211.finalproject;
 
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 
-
-
+/**
+ * Odometer class, keeps track of the robot's position and heading.
+ *
+ * @author Josh Inscoe
+ */
 public class Odometer extends Thread {
 
   // --------------------------------------------------------------------------------
@@ -20,12 +23,12 @@ public class Odometer extends Thread {
   // Variables
   // --------------------------------------------------------------------------------
   
-  private Object lock;
+  private final Object lock;
 
   private EV3LargeRegulatedMotor leftMotor;
   private EV3LargeRegulatedMotor rightMotor;
   private double wheelRadius;
-  private double track;
+  private double wheelBase;
   
   private double x;
   private double y;
@@ -34,14 +37,14 @@ public class Odometer extends Thread {
 
   /**
    * Constructor
-   * @param leftMotor TODO
-   * @param rightMotor TODO
-   * @param wheelRadius TODO
-   * @param track TODO
+   * @param leftMotor Motor powering the left wheel.
+   * @param rightMotor Motor powering the right wheel.
+   * @param wheelRadius Radius of the wheels
+   * @param wheelBase Width of the wheel base
    */
   public Odometer(
       EV3LargeRegulatedMotor leftMotor, EV3LargeRegulatedMotor rightMotor,
-      double wheelRadius, double track
+      double wheelRadius, double wheelBase
       ) {
     // Initalize this thread's lock object.
     this.lock = new Object();
@@ -49,12 +52,12 @@ public class Odometer extends Thread {
     this.leftMotor = leftMotor;
     this.rightMotor = rightMotor;
     this.wheelRadius = wheelRadius;
-    this.track = track;
+    this.wheelBase = wheelBase;
   }
 
 
   /**
-   * TODO
+   * run() method, where all the computations happen.
    */
   public void run() {
     long start;
@@ -93,23 +96,21 @@ public class Odometer extends Thread {
       deltaD = (distL + distR) * 0.5;
 
       // Get the current change in orientation.
-      deltaT = (distL - distR) / FinalProject.TRACK;
-
-
-      tmpTheta = getTheta() + deltaT; // getTheta() is synchronized so we can safely access theta
-
-      // Ensure that the new theta is between 0 and 2*pi radians.
-      while (tmpTheta > Odometer.THETA_MAX) {
-        tmpTheta -= Odometer.THETA_MAX;
-      }
-      while (tmpTheta < Odometer.THETA_MIN) {
-        tmpTheta += Odometer.THETA_MAX;
-      }
-
-      deltaX = deltaD * Math.sin(tmpTheta);
-      deltaY = deltaD * Math.sin(tmpTheta);
+      deltaT = (distL - distR) / FinalProject.WHEEL_BASE;
 
       synchronized (this.lock) {
+        tmpTheta = this.theta + deltaT; // getTheta() is synchronized so we can safely access theta
+
+        // Ensure that the new theta is between 0 and 2*pi radians.
+        while (tmpTheta > Odometer.THETA_MAX) {
+          tmpTheta -= Odometer.THETA_MAX;
+        }
+        while (tmpTheta < Odometer.THETA_MIN) {
+          tmpTheta += Odometer.THETA_MAX;
+        }
+
+        deltaX = deltaD * Math.sin(tmpTheta);
+        deltaY = deltaD * Math.sin(tmpTheta);
         // Update the current values of x, y, and theta.
         this.theta = tmpTheta;
         this.x += deltaX;
@@ -131,19 +132,10 @@ public class Odometer extends Thread {
     // Unreachable
   }
 
-  private double wrapAngle(double theta) {
-    // Ensure that the new theta is between 0 and 2*pi radians.
-    while (tmpTheta > Odometer.THETA_MAX) {
-      theta -= Odometer.THETA_MAX;
-    }
-    while (tmpTheta < Odometer.THETA_MIN) {
-      theta += Odometer.THETA_MAX;
-    }
-    return theta
-  }
-
   /**
-   * TODO
+   * Gets the X coordinate of the robot.
+   *
+   * @return the x coordinate of the robot, as a double.
    */
   public double getX() {
     double x;
@@ -154,7 +146,9 @@ public class Odometer extends Thread {
   }
 
   /**
-   * TODO
+   * Gets the Y coordinate of the robot.
+   *
+   * @return the y coordinate of the robot, as a double.
    */
   public double getY() {
     double y;
@@ -165,7 +159,9 @@ public class Odometer extends Thread {
   }
 
   /**
-   * TODO
+   * Gets the heading of the robot.
+   *
+   * @return the heading of the robot, in radians, between 0 and 2PI.
    */
   public double getTheta() {
     double theta;
@@ -176,7 +172,10 @@ public class Odometer extends Thread {
   }
 
   /**
-   * TODO
+   * Gets the position of the robot.
+   *
+   * @param position an array of doubles to update.
+   * @param update an array of booleans, true to update the corresponding position in the position array.
    */
   public void getPosition(double[] position, boolean[] update) {
     synchronized (this.lock) {
@@ -187,7 +186,10 @@ public class Odometer extends Thread {
   }
 
   /**
-   * TODO
+   * Sets the position of the robot.
+   *
+   * @param position an array of doubles containing to new coordinates and heading.
+   * @param update an array of booleans, true to update the corresponding position with the position array.
    */
   public void setPosition(double[] position, boolean[] update) {
     synchronized (this.lock) {

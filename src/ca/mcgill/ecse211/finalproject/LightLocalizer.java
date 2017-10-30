@@ -1,7 +1,11 @@
 package ca.mcgill.ecse211.finalproject;
 
-
-
+/**
+ * Performs the light localization
+ *
+ * @author Justin Tremblay
+ * @author Josh Inscoe
+ */
 public class LightLocalizer {
 
   // --------------------------------------------------------------------------------
@@ -17,12 +21,12 @@ public class LightLocalizer {
   private Odometer odometer;
   private SensorData sd;
 
-
   /**
    * Constructor
-   * @param driver TODO
-   * @param odometer TODO
-   * @param sd TODO
+   *
+   * @param driver driver object, used for moving the robot.
+   * @param odometer odometer, used to get angle variation between readings and to inject to the new value into.
+   * @param sd SensorData object, used to get the sensor readings.
    */
   public LightLocalizer(Driver driver, Odometer odometer, SensorData sd) {
     this.driver = driver;
@@ -32,7 +36,7 @@ public class LightLocalizer {
 
 
   /**
-   * TODO
+   * Performs light localization and injects the new coordinates in the odometer.
    */
   public void localize() {
     // ...

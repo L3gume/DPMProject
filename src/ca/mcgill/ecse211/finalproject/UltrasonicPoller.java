@@ -2,8 +2,11 @@ package ca.mcgill.ecse211.finalproject;
 
 import lejos.robotics.SampleProvider;
 
-
-
+/**
+ * Polls the ultrasonic sensor and sends the data to the SensorData class.
+ *
+ * @author Josh Inscoe
+ */
 public class UltrasonicPoller extends Thread {
 
   // --------------------------------------------------------------------------------
@@ -25,8 +28,9 @@ public class UltrasonicPoller extends Thread {
 
   /**
    * Constructor
-   * @param sensor TODO
-   * @param sd TODO
+   *
+   * @param sensor SampleProvider for the robot's ultrasonic sensor.
+   * @param sd SensorData object, all sensor data will be passed to it for easier processing and accessing.
    */
   public UltrasonicPoller(SampleProvider sensor, SensorData sd) {
     this.sensor = sensor;
@@ -36,7 +40,7 @@ public class UltrasonicPoller extends Thread {
 
 
   /**
-   * TODO
+   * run() method.
    */
   public void run() {
     while (true) {

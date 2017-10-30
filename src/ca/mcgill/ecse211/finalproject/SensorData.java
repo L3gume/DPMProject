@@ -1,7 +1,10 @@
 package ca.mcgill.ecse211.finalproject;
 
-
-
+/**
+ * Handles processing the sensor data and facilitates access to it.
+ *
+ * @author Josh Inscoe
+ */
 public class SensorData {
 
   // Constants

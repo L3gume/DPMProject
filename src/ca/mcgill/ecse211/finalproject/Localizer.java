@@ -5,7 +5,6 @@ package ca.mcgill.ecse211.finalproject;
  * Handles the localization of the robot, manages both the ultrasonic and light localizers.
  * 
  * @author Justin Tremblay
- *
  */
 public class Localizer {
 
@@ -19,31 +18,38 @@ public class Localizer {
   private Driver dr;
 
   private boolean localizing = false; // Used to block the thread.
-  private boolean skip_ultrasonic = false;
-  private boolean done = false;
+  private boolean skip_ultrasonic = false; // Tells whether or not to skip the ultrasonic localization.
+  private boolean done = false; // Tells whether or not we are done localizing.
   
   private Waypoint ref_pos;
 
+  /**
+   * Enum representing the state of the localizer.
+   */
   public enum loc_state {
     IDLE, NOT_LOCALIZED, ULTRASONIC, LIGHT, DONE
-  };
+  }
 
   private loc_state cur_state = loc_state.IDLE;
 
   /**
    * Constructor
    * 
-   * @param ul UltrasonicLocalizer, performs rising edge localization
+   * @param ul UltrasonicLocalizer, performs rising or falling edge localization to determine the robot's heading
    * @param ll LightLocalization, works alongside the ultrasonic localizer to determine the robot's
-   *        position
+   *        position with respect to a reference position.
+   * @param dr Driver, handles moving the robot.
    */
   public Localizer(UltrasonicLocalizer ul, LightLocalizer ll, Driver dr) {
     this.ul = ul;
     this.ll = ll;
+    this.dr = dr;
   }
 
   /**
-   * process() method.
+   * process() method. Is called every iteration of the MainController thread if its current state is LOCALIZING
+   *
+   * @return current state, as a string.
    */
    String process() {
       switch (cur_state) {
@@ -73,33 +79,33 @@ public class Localizer {
       return cur_state.toString(); // return the current loc_state as a string (controller sub-state)
   }
 
-  /* State processing methods */
-  
+  /* D_State processing methods */
+
   /**
-   * Checks for the value of localizing, returns IDLE if false.
-   * 
-   * @return new state
+   * Processes the IDLE state of the localizer. Checks for conditions before returning a new state (or the same)
+   *
+   * @return new state.
    */
   private loc_state process_idle() {
-    return localizing ? loc_state.NOT_LOCALIZED : loc_state.IDLE;
+    return loc_state.IDLE;
   }
 
   /**
-   * Checks for value of localizing again (just in case). returns IDLE if false.
-   * 
-   * @return new state
+   * Processes the NOT_LOCALIZED state of the localizer. Transitions into either ULTRASONIC or LIGHT depending on the current parameters of the system.
+   *
+   * @return new state.
    */
   private loc_state process_notLocalized() {
 //    dr.rotate(360, true, true); // Start rotating
-    
+
     // Fancy ternary nonsense!
-    return localizing ? skip_ultrasonic ? loc_state.LIGHT : loc_state.ULTRASONIC : loc_state.IDLE;
+    return skip_ultrasonic ? loc_state.LIGHT : loc_state.ULTRASONIC;
   }
 
   /**
-   * Sets up the ultrasonic poller and starts the ultrasonic localization
-   * 
-   * @return new state
+   * Processes the ULTRASONIC state of the localizer. Checks for various conditions before and after calling the UltrasonicLocalizer's localize() method.
+   *
+   * @return new state.
    */
   private loc_state process_ultrasonic() {
 //    if (!localizing) {
@@ -117,15 +123,15 @@ public class Localizer {
   }
 
   /**
-   * Sets up the color poller and starts the light localization
-   * 
-   * @return new state
+   * Processes the Light state of the localizer. Checks for various conditions before and after calling the LightLocalizer's localize() method.
+   *
+   * @return new state.
    */
   private loc_state process_light() {
 //    if (!localizing) {
 //      return loc_state.IDLE;
 //    }
-    
+
 //    if (cp.isAlive()) {
 //      cp.setMode(l_mode.LOCALIZATION);
 //    } else {
@@ -137,9 +143,9 @@ public class Localizer {
   }
 
   /**
-   * Sets localizing to false to stop the thread from doing anything.
-   * 
-   * @return new state
+   * Processes the DONE state of the localizer. Notifies the MainController that the localization is done and resets local variables.
+   *
+   * @return new state.
    */
   private loc_state process_done() {
     localizing = false;
@@ -153,33 +159,10 @@ public class Localizer {
   }
 
   /**
-   * Getter for the state
-   * 
-   * @return current state of the localizer as a string
+   * Sets the reference position to base the localization upon. E.g: the starting position of the position before/after the zip line
+   *
+   * @param ref_pos a Waypoint representing the reference position.
    */
-  public synchronized String getCurrentState() {
-    //TODO: might not be needed anymore
-    return cur_state.toString();
-  }
-
-  /**
-   * Starts the localization process.
-   * 
-   * @param skip_ultrasonic set to true s to skip ultrasonic localization.
-   */
-  public synchronized void startLocalization(boolean skip_ultrasonic) {
-    this.skip_ultrasonic = skip_ultrasonic;
-    localizing = true;
-    done = false;
-  }
-  
-  /**
-   * probably won't ever be usefull.
-   */
-  public synchronized void abortLocalization() {
-    localizing = false;
-  }
-  
   public void setRefPos(Waypoint ref_pos) {
     //TODO: skip the ultrasonic localization if the ref_pos isn't the starting position.
 
@@ -188,10 +171,20 @@ public class Localizer {
 //    ll.setRefPos(this.ref_pos);
   }
 
+  /**
+   * Gets the current reference position.
+   *
+   * @return Waypoint representing the current reference position.
+   */
   public Waypoint getRefPos() {
     return ref_pos;
   }
 
+  /**
+   * Returns true if we are done localizing.
+   *
+   * @return boolean done.
+   */
   public boolean isDone() {
     return done;
   }

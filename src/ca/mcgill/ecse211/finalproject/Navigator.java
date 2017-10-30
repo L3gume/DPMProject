@@ -2,6 +2,9 @@ package ca.mcgill.ecse211.finalproject;
 
 public class Navigator {
 
+  /**
+   * Enum describing the state of the navigator.
+   */
   public enum Nav_State { IDLE, ROTATING, MOVING, AVOIDING, REACHED_WAYPOINT, DONE }
 
   // --------------------------------------------------------------------------------
@@ -48,9 +51,10 @@ public class Navigator {
 
   /**
    * Constructor
-   * @param driver TODO
-   * @param odometer TODO
-   * @param sd TODO
+   *
+   * @param driver Driver object, handles moving the robot.
+   * @param odometer Odometer, used to keep track of the robot's position.
+   * @param sd SensorData object, used to get the readings from the sensors.
    */
   public Navigator(Driver driver, Odometer odometer, SensorData sd) {
     this.driver = driver;
@@ -60,7 +64,7 @@ public class Navigator {
 
   /**
    * Processes the current state, updates it and returns the new state as a string.
-   * This method is package-private, only classes in the same package can access it.
+   * This method is package-private, only classes in the same package can access it.d
    *
    * @return The new state of the navigator, as a string.
    */
@@ -89,43 +93,60 @@ public class Navigator {
     return cur_state.toString();
   }
 
+  /**
+   * Processes the IDLE state of the navigator.
+   *
+   * @return new state, or same if no need to navigate
+   */
   private Nav_State process_idle() {
     return Nav_State.IDLE;
   }
 
+  /**
+   * Processes the ROTATING state of the navigator.
+   *
+   * @return new state, or same if the angle to the target waypoint is still too high.
+   */
   private Nav_State process_rotating() {
     return Nav_State.IDLE;
   }
 
+  /**
+   * Processes the MOVING state of the navigator.
+   *
+   * @return new state, or same if the distance to the target waypoint is still too high.
+   */
   private Nav_State process_moving() {
     return Nav_State.IDLE;
   }
 
+  /**
+   * Processes the AVOIDING state of the navigator.
+   *
+   * @return new state, or same if not done avoiding the obstacle.
+   */
   private Nav_State process_avoiding() {
     // TODO: Integrate P-Controller for obstacle avoidance
     return Nav_State.IDLE;
   }
 
+  /**
+   * Processes the REACHED_POINT state of the navigator. Gets the next waypoint and restarts navigation if it exists.
+   *
+   * @return new state.
+   */
   private Nav_State process_reached() {
     return Nav_State.IDLE;
   }
 
+  /**
+   * Processes the DONE state of the navigator. Notifies the main controller that navigation is done and resets
+   * the navigation variables
+   *
+   * @return new state, or same if no need to navigate
+   */
   private Nav_State process_done() {
     return Nav_State.IDLE;
-  }
-
-  /**
-   * TODO
-   */
-  public void setSource(Waypoint source) {
-    this.source = source;
-  }
-
-  /**
-   * TODO
-   */
-  public void setDestination(Waypoint destination) {
-    this.destination = destination;
   }
 
   /*
@@ -155,10 +176,10 @@ public class Navigator {
   }
 
   /**
-   * Update all the information regarding out target position: - Vector from robot's current
-   * position to target (using odometer and known measurements). - The magnitude of that vector, the
-   * distance to our target. - The angle to the traget position, using our orientation unit vector
-   * and the vector we just computed.
+   * Update all the information regarding out target position:
+   * - Vector from robot's current position to target (using odometer and known measurements).
+   * - The magnitude of that vector, the distance to our target.
+   * - The angle to the traget position, using our orientation unit vector and the vector we just computed.
    */
   private void updateTargetInfo() {
     double x = odometer.getX();
@@ -249,24 +270,16 @@ public class Navigator {
   /**
    * Sets the value of the obstacle_detected variable.
    *
-   * @param arg
+   * @param arg a boolean value telling whether or not an obstacle was detected.
    */
   public synchronized void setObstacleDetected(boolean arg) {
     obstacle_detected = arg;
   }
 
-  // In there only because the lab asks for it.
-  public synchronized boolean isNavigating() {
-    return navigating;
-  }
-  // In there only because the labs asked for it.
-  public synchronized void setNavigating(boolean arg) {
-    this.navigating = arg;
-  }
-
   /**
    * set a new path to navigate
-   * @param waypoints a list of waypoints.
+   *
+   * @param waypoints an array of waypoints.
    */
   public void setPath(Waypoint[] waypoints) {
     path = waypoints;
@@ -274,6 +287,11 @@ public class Navigator {
     waypoint_progress = -1;
   }
 
+  /**
+   * Tells wheter or not the navigator is done navigating.
+   *
+   * @return a boolean value telling whether or not the navigator is done.
+   */
   public boolean isDone() {
     return done;
   }

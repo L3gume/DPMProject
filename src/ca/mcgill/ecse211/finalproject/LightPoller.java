@@ -2,6 +2,11 @@ package ca.mcgill.ecse211.finalproject;
 
 import lejos.robotics.SampleProvider;
 
+/**
+ * Polls the light sensor and sends the data to the SensorData class.
+ *
+ * @author Josh Inscoe
+ */
 public class LightPoller extends Thread {
 
   // --------------------------------------------------------------------------------
@@ -15,34 +20,45 @@ public class LightPoller extends Thread {
   // Variables
   // --------------------------------------------------------------------------------
 
-  private SampleProvider sensor;
-  private float[] data;
+  private SampleProvider sensorLeft;
+  private SampleProvider sensorRight;
+  private SampleProvider sensorMid;
+  private float[] dataLeft;
+  private float[] dataRight;
+  private float[] dataMid;
 
   private SensorData sd;
 
 
   /**
    * Constructor
-   * @param sensor TODO
-   * @param sd TODO
+   *
+   * @param sensorLeft SampleProvider for the robot's left light sensor.
+   * @param sensorRight SampleProvider for the robot's right light sensor.
+   * @param sensorMid SampleProvider for the robot's middle light sensor.
+   * @param sd SensorData object, all sensor data will be passed to it for easier processing and accessing.
    */
-  public LightPoller(SampleProvider sensor, SensorData sd) {
-    this.sensor = sensor;
-    this.data = new float[sensor.sampleSize()];
+  public LightPoller(SampleProvider sensorLeft, SampleProvider sensorRight, SampleProvider sensorMid, SensorData sd) {
+    this.sensorLeft = sensorLeft;
+    this.sensorRight = sensorRight;
+    this.sensorMid = sensorMid;
+    this.dataLeft = new float[sensorLeft.sampleSize()];
+    this.dataRight = new float[sensorRight.sampleSize()];
+    this.dataMid = new float[sensorMid.sampleSize()];
     this.sd = sd;
   }
 
 
   /**
-   * TODO
+   * run() method.
    */
   public void run() {
     while (true) {
       // Stop polling data whenever the light level reference count in our
       // SensorData object has reached zero.
       if (this.sd.getLLRefs() > 0) {
-        this.sensor.fetchSample(this.data, 0);
-        this.sd.lightLevelHandler(this.data[0] * 100.0f);
+        this.sensorLeft.fetchSample(this.dataLeft, 0);
+        this.sd.lightLevelHandler(this.dataLeft[0] * 100.0f);
       } else {
         // Sleep indefinitely until this thread is interrupted, signaling that sensor
         // data may, once again, be needed.
