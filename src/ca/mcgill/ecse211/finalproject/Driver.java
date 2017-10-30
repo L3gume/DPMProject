@@ -1,6 +1,7 @@
 package ca.mcgill.ecse211.finalproject;
 
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
+import lejos.hardware.motor.EV3MediumRegulatedMotor;
 
 /**
  * Driver class, handles moving the robot.
@@ -31,6 +32,8 @@ public class Driver {
 
   private EV3LargeRegulatedMotor leftMotor;
   private EV3LargeRegulatedMotor rightMotor;
+  private EV3LargeRegulatedMotor topMotor; // motor for the zip line
+  private EV3MediumRegulatedMotor frontMotor; // motor for the sensors
 
 
   /**
@@ -38,10 +41,14 @@ public class Driver {
    *
    * @param leftMotor Motor powering the left wheel.
    * @param rightMotor Motor powering the right wheel.
+   * @param topMotor Motor used to cross the zip line.
+   * @param frontMotor Motor to which the sensors are mounted.
    */
-  public Driver(EV3LargeRegulatedMotor leftMotor, EV3LargeRegulatedMotor rightMotor) {
+  public Driver(EV3LargeRegulatedMotor leftMotor, EV3LargeRegulatedMotor rightMotor, EV3LargeRegulatedMotor topMotor, EV3MediumRegulatedMotor frontMotor) {
     this.leftMotor = leftMotor;
     this.rightMotor = rightMotor;
+    this.topMotor = topMotor;
+    this.frontMotor = frontMotor;
   }
 
 
@@ -125,4 +132,26 @@ public class Driver {
     // ...
   }
 
+  /**
+   * Starts the zip line motor. Makes it keep going until the stopTopMotor() method is called.
+   */
+  public void startTopMotor() {
+
+  }
+
+  /**
+   * Stops the zip line motor.
+   */
+  public void stopTopMotor() {
+
+  }
+
+  /**
+   * Rotates the front motor by a certain amount. Useful when avoiding obstacles.
+   *
+   * @param angle The desired rotation angle, in radians.
+   */
+  public void rotateFrontMotor(double angle) {
+
+  }
 }
