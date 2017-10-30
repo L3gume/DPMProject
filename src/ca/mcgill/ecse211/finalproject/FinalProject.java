@@ -27,7 +27,7 @@ public class FinalProject {
 
   // Odometry-related constants
   public static final double WHEEL_RADIUS = 2.1;
-  public static final double WHEEL_BASE = 11.75;
+  public static final double WHEEL_BASE = 15.2;
 
   // Driver-related constants
   public static final int SPEED_FWD = 175;
