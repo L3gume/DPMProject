@@ -69,9 +69,13 @@ public class MainController extends Thread {
     // we need to start looking for the zip-line.
     //
 
+    /*
+     * Get the game data from the server before doing anything.
+     */
+    getGameData();
+
     while (true) {
       process();
-
       try {
         Thread.sleep(40);
       } catch (Exception e) {
@@ -182,5 +186,12 @@ public class MainController extends Thread {
   private State process_searching() {
     // TODO: Implement the Searcher class.
     return State.IDLE;
+  }
+
+  /**
+   * Establishes the connection with the server and updates the game variables in order to get the state machine going.
+   */
+  private void getGameData() {
+    // TODO
   }
 }

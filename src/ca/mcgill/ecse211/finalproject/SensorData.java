@@ -16,14 +16,14 @@ public class SensorData {
   private int usRefs;
 
   // Locks
-  private Object llRefsLock;
-  private Object usRefsLock;
-  private Object llDataLock;
-  private Object usDataLock;
-  private Object llDataDerivLock;
-  private Object usDataDerivLock;
-  private Object llStatsLock;
-  private Object usStatsLock;
+  private final Object llRefsLock;
+  private final Object usRefsLock;
+  private final Object llDataLock;
+  private final Object usDataLock;
+  private final Object llDataDerivLock;
+  private final Object usDataDerivLock;
+  private final Object llStatsLock;
+  private final Object usStatsLock;
 
   // Circular arrays holding the original sensor data
   private double llData[];
@@ -73,6 +73,15 @@ public class SensorData {
 
     this.llStats = new double[] { 0.0f, 0.0f, 0.0f };
     this.usStats = new double[] { 0.0f, 0.0f, 0.0f };
+
+    llRefsLock = new Object();
+    usRefsLock = new Object();
+    llDataLock = new Object();
+    usDataLock = new Object();
+    llDataDerivLock = new Object();
+    usDataDerivLock = new Object();
+    llStatsLock = new Object();
+    usStatsLock = new Object();
   }
 
   /**

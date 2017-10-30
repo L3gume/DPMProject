@@ -15,7 +15,7 @@ public class Driver {
   // --------------------------------------------------------------------------------
 
   /**
-   * Enum describing the D_State of the driver
+   * Enum describing the current state of the driver
    */
   public enum D_State {
 	UNKNOWN,

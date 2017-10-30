@@ -46,7 +46,7 @@ public class UltrasonicPoller extends Thread {
     while (true) {
       // Stop polling data whenever the light level reference count in our
       // SensorData object has reached zero.
-      if (this.sd.getLLRefs() > 0) {
+      if (this.sd.getUSRefs() > 0) {
         this.sensor.fetchSample(this.data, 0);
         this.sd.ultrasonicHandler(this.data[0] * 100.0f);
       } else {
