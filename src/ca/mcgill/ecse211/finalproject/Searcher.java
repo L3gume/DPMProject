@@ -23,6 +23,7 @@ public class Searcher {
   private S_State cur_state = S_State.IDLE;
   private double distance = 0.0;
   private Color color_id = null;
+  private boolean done = false;
 
   /**
    * Constructor
@@ -104,5 +105,14 @@ public class Searcher {
         // should work since the Searcher is executed from the MainController thread.
       }
     }
+  }
+
+  /**
+   * Returns true if the searcher has found the flag.
+   *
+   * @return boolean done
+   */
+  public boolean isDone() {
+    return done;
   }
 }

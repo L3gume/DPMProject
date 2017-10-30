@@ -11,7 +11,11 @@ public class MainController extends Thread {
   /**
    * Enum describing the state of the controller.
    */
-  public enum State { IDLE, LOCALIZING, NAVIGATING, ZIPLINING, SEARCHING };
+  public enum State {
+    IDLE, LOCALIZING, NAVIGATING, ZIPLINING, SEARCHING
+  }
+
+  ;
 
   // --------------------------------------------------------------------------------
   // Constants
@@ -27,6 +31,7 @@ public class MainController extends Thread {
   private LightLocalizer lightLocalizer;
   private Navigator navigator;
   private ZipLine zipLine;
+  private Searcher searcher;
 
   private State cur_state = State.IDLE; // Current state of the controller
   private String sub_state = null; // D_State of the currently executing subsystem
@@ -34,18 +39,20 @@ public class MainController extends Thread {
   /**
    * Constructor
    *
-   * @param localizer Localizer object, manages the localization of the robot.
-   * @param ultrasonicLocalizer Ultrasonic localizer, works with the Localizer class to localize the robot
-   * @param lightLocalizer Light localizer, works with the Localizer class to localize the robot
-   * @param navigator Navigator, handles navigating the robot through sets of waypoints as well as avoiding obstacles
-   * @param zipLine Zipline controller, handles crossing the zip line.
+   * @param localizer           Localizer object, manages the localization of the robot.
+   * @param ultrasonicLocalizer Ultrasonic localizer, works with the Localizer class to localize the robot.
+   * @param lightLocalizer      Light localizer, works with the Localizer class to localize the robot.
+   * @param navigator           Navigator, handles navigating the robot through sets of waypoints as well as avoiding obstacles.
+   * @param zipLine             Zipline controller, handles crossing the zip line.
+   * @param searcher            Searcher object, works with the navigator to look for the 'flag'.
    */
-  public MainController(Localizer localizer, UltrasonicLocalizer ultrasonicLocalizer, LightLocalizer lightLocalizer, Navigator navigator, ZipLine zipLine) {
+  public MainController(Localizer localizer, UltrasonicLocalizer ultrasonicLocalizer, LightLocalizer lightLocalizer, Navigator navigator, ZipLine zipLine, Searcher searcher) {
     this.localizer = localizer;
     this.ultrasonicLocalizer = ultrasonicLocalizer;
     this.lightLocalizer = lightLocalizer;
     this.navigator = navigator;
     this.zipLine = zipLine;
+    this.searcher = searcher;
   }
 
 
@@ -88,7 +95,7 @@ public class MainController extends Thread {
    * Root of the robot's state machine. The current state of the robot is processed at every iteration
    * of the run() loop. Depending on the current state, the process method of the corresponding subsystem
    * is called, which processes the subsystem's state.
-   *
+   * <p>
    * This structure eliminates the problem of accessing variables from multiple threads as everything
    * is essentially done is the same thread.
    */
@@ -109,7 +116,8 @@ public class MainController extends Thread {
       case SEARCHING:
         cur_state = process_searching();
         break;
-      default: break;
+      default:
+        break;
     }
   }
 
@@ -185,6 +193,15 @@ public class MainController extends Thread {
    */
   private State process_searching() {
     // TODO: Implement the Searcher class.
+    sub_state = searcher.process();
+
+    if (searcher.isDone()) {
+      // Check for various conditions
+    } else {
+      return State.SEARCHING;
+    }
+
+    // This is going to be a fallthrough.
     return State.IDLE;
   }
 
