@@ -26,7 +26,9 @@ public class SensorData {
   private final Object usStatsLock;
 
   // Circular arrays holding the original sensor data
-  private double llData[];
+  private double llData1[];
+  private double llData2[];
+  private double llData3[];
   private double usData[];
 
   // Circular arrays holding the derivative of the sensor data
@@ -34,7 +36,9 @@ public class SensorData {
   private double usDataDeriv[];
 
   // The next index at which data should be placed in the circular arrays
-  private int llIndex;
+  private int llIndex1; // sensor left
+  private int llIndex2; // sensor right
+  private int llIndex3; // sensor mid
   private int usIndex;
 
   // Boolean values signalling whether circular arrays are filled
@@ -50,7 +54,9 @@ public class SensorData {
   // 1 - moving variance
   // 2 - moving standard deviation
   //
-  private double[] llStats;
+  private double[] llStats1;
+  private double[] llStats2;
+  private double[] llStats3;
   private double[] usStats;
 
   /**
@@ -60,18 +66,24 @@ public class SensorData {
     this.llRefs = 0;
     this.usRefs = 0;
 
-    this.llData = new double[LL_DATA_SIZE];
+    this.llData1 = new double[LL_DATA_SIZE];
+    this.llData2 = new double[LL_DATA_SIZE];
+    this.llData3 = new double[LL_DATA_SIZE];
     this.usData = new double[US_DATA_SIZE];
     this.llDataDeriv = new double[LL_DATA_SIZE];
     this.usDataDeriv = new double[US_DATA_SIZE];
 
-    this.llIndex = 0;
+    this.llIndex1 = 0;
+    this.llIndex2 = 0;
+    this.llIndex3 = 0;
     this.usIndex = 0;
 
     this.llFilled = false;
     this.usFilled = false;
 
-    this.llStats = new double[] { 0.0f, 0.0f, 0.0f };
+    this.llStats1 = new double[] { 0.0f, 0.0f, 0.0f };
+    this.llStats2 = new double[] { 0.0f, 0.0f, 0.0f };
+    this.llStats3 = new double[] { 0.0f, 0.0f, 0.0f };
     this.usStats = new double[] { 0.0f, 0.0f, 0.0f };
 
     llRefsLock = new Object();
@@ -89,25 +101,35 @@ public class SensorData {
    *
    * @param value the latest data value returned by the light sensor
    */
-  public void lightLevelHandler(double value) {
+  public void lightLevelHandler(double value, int sel) {
     synchronized (this.llDataLock) {
       // Update moving statistics.
       synchronized (this.llStatsLock) {
-        this.updateMovingStatistics(this.llStats, this.llData, this.llIndex, value);
+        if (sel == 1) {
+          this.updateMovingStatistics(this.llStats1, this.llData1, this.llIndex1, value);
+        }
       }
 
+
       // Insert latest sample.
-      this.llData[this.llIndex] = value;
+      switch (sel) {
+        case 1: this.llData1[this.llIndex1++] = value; break;
+        case 2: this.llData2[this.llIndex2++] = value; break;
+        case 3: this.llData3[this.llIndex3++] = value; break;
+      }
 
       // Insert latest sample derivative.
       synchronized (this.llDataDerivLock) {
-        double lastValue = this.llData[(this.llIndex - 1 + LL_DATA_SIZE) % LL_DATA_SIZE];
-        this.llDataDeriv[this.llIndex] = value - lastValue;
+        if (sel == 1) {
+          double lastValue = this.llData1[(this.llIndex1 - 1 + LL_DATA_SIZE) % LL_DATA_SIZE];
+          this.llDataDeriv[this.llIndex1] = value - lastValue;
+        }
       }
 
-      this.llIndex += 1;
-      this.llIndex %= this.LL_DATA_SIZE;
-      if (!(this.llFilled) && this.llIndex == 0) {
+      this.llIndex1 %= this.LL_DATA_SIZE;
+      this.llIndex2 %= this.LL_DATA_SIZE;
+      this.llIndex3 %= this.LL_DATA_SIZE;
+      if (!(this.llFilled) && this.llIndex1 == 0) {
         // Our circular array is now filled.
         this.llFilled = true;
       }
@@ -149,7 +171,7 @@ public class SensorData {
    *
    * @return the number of external objects which use the light sensor data provided by this object
    */
-  public int getLLRefs() {
+  public synchronized int getLLRefs() {
     return this.llRefs;
   }
 
@@ -158,7 +180,7 @@ public class SensorData {
    *
    * @return the number of external objects which use the ultrasonic sensor data provided by this object
    */
-  public int getUSRefs() {
+  public synchronized int getUSRefs() {
     return this.usRefs;
   }
 
@@ -167,11 +189,17 @@ public class SensorData {
    *
    * @return a double array holding a copy of the original light sensor data
    */
-  public double[] getLLData() {
+  public double[] getLLData(int sel) {
     double[] data = null;
     if (this.llFilled) {
       synchronized (this.llDataLock) {
-        data = this.llData.clone();
+        if (sel == 1) {
+          data = this.llData1.clone();
+        } else if (sel == 2) {
+          data = this.llData2.clone();
+        } else {
+          data = null;
+        }
       }
     }
     return data;
@@ -182,11 +210,17 @@ public class SensorData {
    *
    * @return the latest light sensor data value
    */
-  public double getLLDataLatest() {
+  public double getLLDataLatest(int sel) {
     double value;
     // We can safely assume that at least one value has been recorded.
     synchronized (this.llDataLock) {
-      value = this.llData[(this.llIndex - 1 + LL_DATA_SIZE) % LL_DATA_SIZE];
+      if (sel == 1) {
+        value = this.llData1[(this.llIndex1 - 1 + LL_DATA_SIZE) % LL_DATA_SIZE];
+      } else if (sel == 2) {
+        value = this.llData2[(this.llIndex2 - 1 + LL_DATA_SIZE) % LL_DATA_SIZE];
+      } else {
+        value = 0;
+      }
     }
     return value;
   }
@@ -244,7 +278,7 @@ public class SensorData {
     double value;
     // We can safely assume that at least one value has been recorded.
     synchronized (this.llDataDerivLock) {
-      value = this.llDataDeriv[(this.llIndex - 1 + LL_DATA_SIZE) % LL_DATA_SIZE];
+      value = this.llDataDeriv[(this.llIndex1 - 1 + LL_DATA_SIZE) % LL_DATA_SIZE];
     }
     return value;
   }
@@ -287,7 +321,7 @@ public class SensorData {
     double[] stats = null;
     if (this.llFilled) {
       synchronized (this.llStatsLock) {
-        stats = this.llStats.clone();
+        stats = this.llStats1.clone();
       }
     }
     return stats;

@@ -18,6 +18,7 @@ public class FinalProject {
   public static final boolean DEBUG = false;
 
 
+
   // --------------------------------------------------------------------------------
   // Constants
   // --------------------------------------------------------------------------------
@@ -27,11 +28,16 @@ public class FinalProject {
 
   // Odometry-related constants
   public static final double WHEEL_RADIUS = 2.1;
-  public static final double WHEEL_BASE = 11.75;
+  public static final double WHEEL_BASE = 14.695;
 
   // Driver-related constants
   public static final int SPEED_FWD = 175;
   public static final int SPEED_ROT = 75;
+
+  // Localization-related constants
+  public static final int RISING_EDGE_THRESHOLD = 50;
+  public static final int FALLING_EDGE_THRESHOLD = 70;
+  public static final double LIGHT_SENSOR_OFFSET = 4.9;
 
 
   // --------------------------------------------------------------------------------
@@ -40,17 +46,19 @@ public class FinalProject {
 
   // Wheel motors
   public static final EV3LargeRegulatedMotor leftMotor =
-    new EV3LargeRegulatedMotor(LocalEV3.get().getPort("C"));
-  public static final EV3LargeRegulatedMotor rightMotor =
     new EV3LargeRegulatedMotor(LocalEV3.get().getPort("A"));
+  public static final EV3LargeRegulatedMotor rightMotor =
+    new EV3LargeRegulatedMotor(LocalEV3.get().getPort("B"));
 
   // Zip-line motor
   public static final EV3LargeRegulatedMotor zipMotor =
     new EV3LargeRegulatedMotor(LocalEV3.get().getPort("D"));
 
   // Sensor ports
-  private static final Port usPort = LocalEV3.get().getPort("S1");
-  private static final Port lsPort = LocalEV3.get().getPort("S2");
+  private static final Port usPort = LocalEV3.get().getPort("S4");
+  private static final Port lsPortl = LocalEV3.get().getPort("S1");
+  private static final Port lsPortr = LocalEV3.get().getPort("S2");
+  private static final Port lsPortm = LocalEV3.get().getPort("S3");
 
 
   // --------------------------------------------------------------------------------
@@ -70,25 +78,32 @@ public class FinalProject {
     // Initialize the ultrasonic and light sensors.
     SensorModes usSensor = new EV3UltrasonicSensor(FinalProject.usPort);
     SampleProvider usSampleProvider = usSensor.getMode("Distance");
-    SensorModes lsSensor = new EV3ColorSensor(FinalProject.lsPort);
-    SampleProvider lsSampleProvider = usSensor.getMode("Red");
-
-    // Display the main menu and receive the starting and zip-line coordinates from the user.
-    Waypoint coordsStart = FinalProject.getCoordinates(t, "Start Coords", 0, 3);
-    Waypoint coordsZipLine = FinalProject.getCoordinates(t, "Zip-line Coords", 0, 8);
+    SensorModes lsSensorl = new EV3ColorSensor(FinalProject.lsPortl);
+    SampleProvider lsSampleProviderl = lsSensorl.getMode("Red");
+    SensorModes lsSensorr = new EV3ColorSensor(FinalProject.lsPortr);
+    SampleProvider lsSampleProviderr = lsSensorr.getMode("Red");
+    SensorModes lsSensorm = new EV3ColorSensor(FinalProject.lsPortm);
+    SampleProvider lsSampleProviderm = lsSensorm.getMode("Red");
 
     // Create SensorData object.
     SensorData sd = new SensorData();
 
     // Create UltrasonicPoller and LightPoller objects.
     UltrasonicPoller usPoller = new UltrasonicPoller(usSampleProvider, sd);
-    //LightPoller lsPoller = new LightPoller(lsSampleProvider, sd);
+    LightPoller lsPoller = new LightPoller(lsSampleProviderl, lsSampleProviderr, lsSampleProviderm, sd);
+
+
 
     // Create Odometer object.
     Odometer odometer = new Odometer(
         FinalProject.leftMotor, FinalProject.rightMotor, FinalProject.WHEEL_RADIUS, FinalProject.WHEEL_BASE
         );
 
+    Driver dr = new Driver(FinalProject.leftMotor, FinalProject.rightMotor, FinalProject.zipMotor, null);
+    UltrasonicLocalizer ul = new UltrasonicLocalizer(dr, odometer, sd);
+    LightLocalizer ll = new LightLocalizer(dr, odometer, sd);
+    Localizer loc = new Localizer(ul, ll, dr);
+    Display disp = new Display(LocalEV3.get().getTextLCD(), odometer, null, sd, usPoller);
     //
     // TODO:
     //
@@ -104,13 +119,19 @@ public class FinalProject {
     // Create MainController object.
 //    MainController zipLineController = new MainController( [> ... <] );
 
+    dr.setSpeedLeftMotor(SPEED_ROT);
+    dr.setSpeedRightMotor(SPEED_ROT);
     // Start data threads.
     usPoller.start();
-    //lsPoller.start();
+    lsPoller.start();
     odometer.start();
+    disp.start();
 
-    // Start the main controller thread.
-//    zipLineController.start();
+    Button.waitForAnyPress();
+    ul.localize();
+    dr.rotate(-Math.toDegrees(odometer.getTheta()), false);
+    
+//    dr.rotate(1080, true);
 
     // Kill this program whenever the escape button is pressed on the EV3.
     while (Button.waitForAnyPress() != Button.ID_ESCAPE);

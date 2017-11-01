@@ -93,10 +93,10 @@ public class Odometer extends Thread {
       lastTachoR = currentTachoR;
 
       // Get the current change in position.
-      deltaD = (distL + distR) * 0.5;
+      deltaD = (distR + distL) * 0.5;
 
       // Get the current change in orientation.
-      deltaT = (distL - distR) / FinalProject.WHEEL_BASE;
+      deltaT = (distR - distL) / FinalProject.WHEEL_BASE;
 
       synchronized (this.lock) {
         tmpTheta = this.theta + deltaT; // getTheta() is synchronized so we can safely access theta
@@ -145,6 +145,10 @@ public class Odometer extends Thread {
     return x;
   }
 
+  public synchronized void setX(double _x) {
+    this.x = _x;
+  }
+
   /**
    * Gets the Y coordinate of the robot.
    *
@@ -156,6 +160,10 @@ public class Odometer extends Thread {
       y = this.y;
     }
     return y;
+  }
+
+  public synchronized void setY(double _y) {
+    this.y = _y;
   }
 
   /**
@@ -172,6 +180,21 @@ public class Odometer extends Thread {
   }
 
   /**
+   * Sets theta
+   *
+   * @param new_theta new angle, in radians
+   */
+  public synchronized void setTheta(double new_theta) {
+    while (new_theta > Odometer.THETA_MAX) {
+      new_theta -= Odometer.THETA_MAX;
+    }
+    while (new_theta < Odometer.THETA_MIN) {
+      new_theta += Odometer.THETA_MAX;
+    }
+    this.theta = new_theta;
+  }
+
+  /**
    * Gets the position of the robot.
    *
    * @param position an array of doubles to update.
@@ -181,7 +204,7 @@ public class Odometer extends Thread {
     synchronized (this.lock) {
       position[0] = (update[0]) ? this.x : position[0];
       position[1] = (update[1]) ? this.y : position[1];
-      position[2] = (update[2]) ? this.theta : position[2];
+      position[2] = (update[2]) ? Math.toDegrees(this.theta) : position[2];
     }
   }
 

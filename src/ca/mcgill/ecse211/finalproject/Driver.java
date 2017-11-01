@@ -84,13 +84,13 @@ public class Driver {
   /**
    * Make the robot rotate a certain angle.
    *
-   * @param angle The angle to rotate, in radians
+   * @param angle_deg The angle to rotate, in degrees
    * @param inst_ret boolean, true the immediately return from the method.
    */
-  public void rotate(double angle, boolean inst_ret) {
+  public void rotate(double angle_deg, boolean inst_ret) {
     leftMotor.synchronizeWith(new EV3LargeRegulatedMotor[] {rightMotor});
-    leftMotor.rotate(convertAngle(angle), true);
-    rightMotor.rotate(-convertAngle(angle), inst_ret);
+    leftMotor.rotate(-convertAngle(angle_deg), true);
+    rightMotor.rotate(convertAngle(angle_deg), inst_ret);
     leftMotor.endSynchronization();
   }
 

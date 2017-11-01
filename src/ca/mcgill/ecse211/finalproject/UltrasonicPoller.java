@@ -22,6 +22,7 @@ public class UltrasonicPoller extends Thread {
 
   private SampleProvider sensor;
   private float[] data;
+  private float last_dist = 0.f;
 
   private SensorData sd;
 
@@ -49,16 +50,17 @@ public class UltrasonicPoller extends Thread {
       if (this.sd.getUSRefs() > 0) {
         this.sensor.fetchSample(this.data, 0);
         this.sd.ultrasonicHandler(this.data[0] * 100.0f);
+        last_dist = this.data[0] * 100.f;
       } else {
         // Sleep indefinitely until this thread is interrupted, signaling that sensor
         // data may, once again, be needed.
-        try {
-          Thread.sleep(Long.MAX_VALUE);
-        } catch (Exception e) {
-          // ...
-        }
+//        try {
+//          Thread.sleep(Long.MAX_VALUE);
+//        } catch (Exception e) {
+//          // ...
+//        }
 
-        continue;
+        //continue;
       }
 
       // Sleep for a bit.
@@ -70,6 +72,10 @@ public class UltrasonicPoller extends Thread {
     }
 
     // Unreachable
+  }
+  
+  public synchronized float getLastDist() {
+	return last_dist;
   }
 
 }
