@@ -69,7 +69,7 @@ public class Driver {
    * @param speed desired speed of the motor.
    */
   public void setSpeedLeftMotor(float speed) {
-    // ...
+    leftMotor.setSpeed(speed);
   }
 
   /**
@@ -78,7 +78,7 @@ public class Driver {
    * @param speed desired speed of the motor.
    */
   public void setSpeedRightMotor(float speed) {
-    // ...
+    rightMotor.setSpeed(speed);
   }
 
   /**
@@ -88,7 +88,10 @@ public class Driver {
    * @param inst_ret boolean, true the immediately return from the method.
    */
   public void rotate(double angle, boolean inst_ret) {
-    // ...
+    leftMotor.synchronizeWith(new EV3LargeRegulatedMotor[] {rightMotor});
+    leftMotor.rotate(convertAngle(angle), true);
+    rightMotor.rotate(-convertAngle(angle), inst_ret);
+    leftMotor.endSynchronization();
   }
 
   /**
@@ -98,14 +101,20 @@ public class Driver {
    * @param inst_ret boolean, true the immediately return from the method.
    */
   public void moveForward(double dist, boolean inst_ret) {
-
+    leftMotor.synchronizeWith(new EV3LargeRegulatedMotor[] {rightMotor});
+    leftMotor.rotate(convertDistance(dist), true);
+    leftMotor.rotate(convertDistance(dist), inst_ret);
+    leftMotor.endSynchronization();
   }
 
   /**
    * Makes the robot move forward indefinitely,
    */
   public void endlessMoveForward() {
-
+    leftMotor.synchronizeWith(new EV3LargeRegulatedMotor[] {rightMotor});
+    leftMotor.forward();
+    rightMotor.forward();
+    leftMotor.endSynchronization();
   }
 
   /**
@@ -115,43 +124,72 @@ public class Driver {
    * @param inst_ret boolean, true the immediately return from the method.
    */
   public void moveBackward(double dist, boolean inst_ret) {
-
+    leftMotor.synchronizeWith(new EV3LargeRegulatedMotor[] {rightMotor});
+    leftMotor.rotate(-convertDistance(dist), true);
+    leftMotor.rotate(-convertDistance(dist), inst_ret);
+    leftMotor.endSynchronization();
   }
 
   /**
    * Makes the robot move backwards indefinitely,
    */
   public void endlessMoveBackward() {
-
+    leftMotor.synchronizeWith(new EV3LargeRegulatedMotor[] {rightMotor});
+    leftMotor.backward();
+    rightMotor.backward();
+    leftMotor.endSynchronization();
   }
 
   /**
    * Stops both motors.
    */
   public void stop() {
-    // ...
+    leftMotor.synchronizeWith(new EV3LargeRegulatedMotor[] {rightMotor});
+    leftMotor.stop(true);
+    rightMotor.stop(true);
+    leftMotor.endSynchronization();
   }
 
   /**
    * Starts the zip line motor. Makes it keep going until the stopTopMotor() method is called.
    */
   public void startTopMotor() {
-
+    topMotor.backward(); // actually has to spin backwards
   }
 
   /**
    * Stops the zip line motor.
    */
   public void stopTopMotor() {
-
+    topMotor.stop();
   }
 
   /**
    * Rotates the front motor by a certain amount. Useful when avoiding obstacles.
    *
-   * @param angle The desired rotation angle, in radians.
+   * @param angle The desired rotation angle, in degrees
    */
-  public void rotateFrontMotor(double angle) {
+  public void rotateFrontMotor(int angle) {
+    frontMotor.rotate(angle, true);
+  }
 
+  /**
+   * Avoid the obstacle in front of the robot.
+   *
+   * @param dist the distance read by the ultrasonic sensor.
+   */
+  public void avoidObstacle(float dist) {
+    // TODO
+  }
+
+  /**
+   * Helper methods
+   */
+  private static int convertDistance(double distance) {
+    return (int) ((180.0 * distance) / (Math.PI * FinalProject.WHEEL_RADIUS));
+  }
+
+  private static int convertAngle(double angle) {
+    return convertDistance(Math.PI * FinalProject.WHEEL_BASE * angle / 360.0);
   }
 }

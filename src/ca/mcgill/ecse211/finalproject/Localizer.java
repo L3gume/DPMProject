@@ -26,11 +26,11 @@ public class Localizer {
   /**
    * Enum representing the state of the localizer.
    */
-  public enum loc_state {
+  public enum Loc_State {
     IDLE, NOT_LOCALIZED, ULTRASONIC, LIGHT, DONE
   }
 
-  private loc_state cur_state = loc_state.IDLE;
+  private Loc_State cur_state = Loc_State.IDLE;
 
   /**
    * Constructor
@@ -76,7 +76,7 @@ public class Localizer {
        * Space reserved for special cases, shouldn't be needed here.
        */
       
-      return cur_state.toString(); // return the current loc_state as a string (controller sub-state)
+      return cur_state.toString(); // return the current Loc_State as a string (controller sub-state)
   }
 
   /* D_State processing methods */
@@ -86,8 +86,8 @@ public class Localizer {
    *
    * @return new state.
    */
-  private loc_state process_idle() {
-    return loc_state.IDLE;
+  private Loc_State process_idle() {
+    return Loc_State.IDLE;
   }
 
   /**
@@ -95,11 +95,11 @@ public class Localizer {
    *
    * @return new state.
    */
-  private loc_state process_notLocalized() {
+  private Loc_State process_notLocalized() {
 //    dr.rotate(360, true, true); // Start rotating
 
     // Fancy ternary nonsense!
-    return skip_ultrasonic ? loc_state.LIGHT : loc_state.ULTRASONIC;
+    return skip_ultrasonic ? Loc_State.LIGHT : Loc_State.ULTRASONIC;
   }
 
   /**
@@ -107,19 +107,19 @@ public class Localizer {
    *
    * @return new state.
    */
-  private loc_state process_ultrasonic() {
+  private Loc_State process_ultrasonic() {
 //    if (!localizing) {
-//      return loc_state.IDLE;
+//      return Loc_State.IDLE;
 //    }
 //
 //    if (up.isAlive()) {
 //      up.setMode(u_mode.LOCALIZATION);
 //    } else {
 //      System.out.println("[LOCALIZER] UltrasonicPoller not running!");
-//      return loc_state.IDLE; // That's a big problem.
+//      return Loc_State.IDLE; // That's a big problem.
 //    }
 //    ul.localize();
-    return loc_state.LIGHT; // Go directly to light localization.
+    return Loc_State.LIGHT; // Go directly to light localization.
   }
 
   /**
@@ -127,19 +127,19 @@ public class Localizer {
    *
    * @return new state.
    */
-  private loc_state process_light() {
+  private Loc_State process_light() {
 //    if (!localizing) {
-//      return loc_state.IDLE;
+//      return Loc_State.IDLE;
 //    }
 
 //    if (cp.isAlive()) {
 //      cp.setMode(l_mode.LOCALIZATION);
 //    } else {
 //      System.out.println("[LOCALIZER] ColorPoller not running!");
-//      return loc_state.IDLE; // That's a big problem.
+//      return Loc_State.IDLE; // That's a big problem.
 //    }
 //    ll.localize();
-    return loc_state.DONE;
+    return Loc_State.DONE;
   }
 
   /**
@@ -147,7 +147,7 @@ public class Localizer {
    *
    * @return new state.
    */
-  private loc_state process_done() {
+  private Loc_State process_done() {
     localizing = false;
     done = true;
     
@@ -155,7 +155,7 @@ public class Localizer {
     if (skip_ultrasonic) {
       skip_ultrasonic = false;
     }
-    return loc_state.IDLE;
+    return Loc_State.IDLE;
   }
 
   /**

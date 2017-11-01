@@ -1,5 +1,8 @@
 package ca.mcgill.ecse211.finalproject;
 
+/**
+ * Handles navigating through sets of waypoints as well as avoiding obstacles when they are encountered.
+ */
 public class Navigator {
 
   /**
