@@ -33,6 +33,9 @@ public class FinalProject {
   public static final int SPEED_FWD = 175;
   public static final int SPEED_ROT = 75;
   
+  // Poller-related constants
+  public static final long SLEEP_TIME = 20;
+  
   // Zipline-related constants
   public static final double ZIPLINE_ORIENTATION = 0.0;						// TODO this will be determined by values inputted over WiFi
   public static final Waypoint ZIPLINE_START_POS = new Waypoint(0.0, 0.0);	// TODO this will be determined by values inputted over WiFi
@@ -58,8 +61,10 @@ public class FinalProject {
     new EV3LargeRegulatedMotor(LocalEV3.get().getPort("D"));
 
   // Sensor ports
-  private static final Port usPort = LocalEV3.get().getPort("S1");
-  private static final Port lsPort = LocalEV3.get().getPort("S2");
+  private static final Port usPort = LocalEV3.get().getPort("S4");
+  private static final Port lsPortLeft = LocalEV3.get().getPort("S1");
+  private static final Port lsPortRight = LocalEV3.get().getPort("S2");
+  private static final Port lsPortMid = LocalEV3.get().getPort("S3");
 
 
   // --------------------------------------------------------------------------------
@@ -79,8 +84,12 @@ public class FinalProject {
     // Initialize the ultrasonic and light sensors.
     SensorModes usSensor = new EV3UltrasonicSensor(FinalProject.usPort);
     SampleProvider usSampleProvider = usSensor.getMode("Distance");
-    SensorModes lsSensor = new EV3ColorSensor(FinalProject.lsPort);
-    SampleProvider lsSampleProvider = usSensor.getMode("Red");
+    SensorModes lsSensorLeft = new EV3ColorSensor(FinalProject.lsPortLeft);
+    SampleProvider lsSampleProviderLeft = usSensor.getMode("Red");
+    SensorModes lsSensorRight = new EV3ColorSensor(FinalProject.lsPortRight);
+    SampleProvider lsSampleProviderRight = usSensor.getMode("Red");
+    SensorModes lsSensorMid = new EV3ColorSensor(FinalProject.lsPortMid);
+    SampleProvider lsSampleProviderMid = usSensor.getMode("Red");
 
     // Display the main menu and receive the starting and zip-line coordinates from the user.
     Waypoint coordsStart = FinalProject.getCoordinates(t, "Start Coords", 0, 3);
@@ -89,9 +98,9 @@ public class FinalProject {
     // Create SensorData object.
     SensorData sd = new SensorData();
 
-    // Create UltrasonicPoller and LightPoller objects.
-    UltrasonicPoller usPoller = new UltrasonicPoller(usSampleProvider, sd);
-    //LightPoller lsPoller = new LightPoller(lsSampleProvider, sd);
+    // Create sensorPoller object
+    SensorPoller sensorPoller = new SensorPoller(lsSampleProviderLeft, 
+    		lsSampleProviderRight, lsSampleProviderMid, usSampleProvider, sd);
 
     // Create Odometer object.
     Odometer odometer = new Odometer(
@@ -114,8 +123,7 @@ public class FinalProject {
 //    MainController zipLineController = new MainController( [> ... <] );
 
     // Start data threads.
-    usPoller.start();
-    //lsPoller.start();
+    sensorPoller.start();
     odometer.start();
 
     // Start the main controller thread.

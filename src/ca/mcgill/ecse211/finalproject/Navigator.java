@@ -258,7 +258,7 @@ public class Navigator {
 
   /*
    * These two methods are meant to guarantee locked access to the obstacle_detected variable for
-   * both the navigator and the ultrasonic poller
+   * both the navigator and the sensor poller
    */
 
   /**
