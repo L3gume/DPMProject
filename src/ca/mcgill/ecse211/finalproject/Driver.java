@@ -88,6 +88,8 @@ public class Driver {
    * @param inst_ret boolean, true the immediately return from the method.
    */
   public void rotate(double angle_deg, boolean inst_ret) {
+    setSpeedLeftMotor(FinalProject.SPEED_ROT);
+    setSpeedRightMotor(FinalProject.SPEED_ROT);
     leftMotor.synchronizeWith(new EV3LargeRegulatedMotor[] {rightMotor});
     leftMotor.rotate(-convertAngle(angle_deg), true);
     rightMotor.rotate(convertAngle(angle_deg), inst_ret);
@@ -101,10 +103,12 @@ public class Driver {
    * @param inst_ret boolean, true the immediately return from the method.
    */
   public void moveForward(double dist, boolean inst_ret) {
-    leftMotor.synchronizeWith(new EV3LargeRegulatedMotor[] {rightMotor});
+    setSpeedLeftMotor(FinalProject.SPEED_FWD);
+    setSpeedRightMotor(FinalProject.SPEED_FWD);
+//    leftMotor.synchronizeWith(new EV3LargeRegulatedMotor[] {rightMotor});
     leftMotor.rotate(convertDistance(dist), true);
-    leftMotor.rotate(convertDistance(dist), inst_ret);
-    leftMotor.endSynchronization();
+    rightMotor.rotate(convertDistance(dist), inst_ret);
+//    leftMotor.endSynchronization();
   }
 
   /**
@@ -124,9 +128,11 @@ public class Driver {
    * @param inst_ret boolean, true the immediately return from the method.
    */
   public void moveBackward(double dist, boolean inst_ret) {
+    setSpeedLeftMotor(FinalProject.SPEED_FWD);
+    setSpeedRightMotor(FinalProject.SPEED_FWD);
     leftMotor.synchronizeWith(new EV3LargeRegulatedMotor[] {rightMotor});
     leftMotor.rotate(-convertDistance(dist), true);
-    leftMotor.rotate(-convertDistance(dist), inst_ret);
+    rightMotor.rotate(-convertDistance(dist), inst_ret);
     leftMotor.endSynchronization();
   }
 
@@ -143,13 +149,27 @@ public class Driver {
   /**
    * Stops both motors.
    */
-  public void stop() {
+  public void stopBoth() {
     leftMotor.synchronizeWith(new EV3LargeRegulatedMotor[] {rightMotor});
     leftMotor.stop(true);
     rightMotor.stop(true);
     leftMotor.endSynchronization();
   }
-
+  
+  /**
+   * 
+   */
+  public void stopLeftWheel() {
+    leftMotor.stop();
+  }
+  
+  /**
+   * 
+   */
+  public void stopRightWheel() {
+    rightMotor.stop();
+  }
+  
   /**
    * Starts the zip line motor. Makes it keep going until the stopTopMotor() method is called.
    */
@@ -170,6 +190,7 @@ public class Driver {
    * @param angle The desired rotation angle, in degrees
    */
   public void rotateFrontMotor(int angle) {
+    frontMotor.setSpeed(75);
     frontMotor.rotate(angle, true);
   }
 

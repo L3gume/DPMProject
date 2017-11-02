@@ -69,8 +69,9 @@ public class Display extends Thread {
 				t.drawString(formattedDoubleToString(position[i], 2), 3, i);
 			}
 
-			t.drawString("dist: " + sd.getUSDataLatest(), 0, 5);
-			t.drawString("dist: " + up.getLastDist(), 0, 6);
+			t.drawString("dist: " + sd.getUSDataLatest(), 0, 4);
+			t.drawString("ll: " + sd.getLLDataLatest(1), 0, 5);
+			t.drawString("lr: " + sd.getLLDataLatest(2), 0, 6);
 //			t.drawString("distance: " + ul.getDist(), 0, 4);
 //			t.drawString("Light Level: " + cp.lightl, 0, 5);
 //			t.drawString("State: " + cont.getCurrentState(), 0, 6); // Display the current state of the controller

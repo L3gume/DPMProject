@@ -26,14 +26,14 @@ public class SensorData {
   private final Object usStatsLock;
 
   // Circular arrays holding the original sensor data
-  private double llData1[];
-  private double llData2[];
-  private double llData3[];
-  private double usData[];
+  private float llData1[];
+  private float llData2[];
+  private float llData3[];
+  private float usData[];
 
   // Circular arrays holding the derivative of the sensor data
-  private double llDataDeriv[];
-  private double usDataDeriv[];
+  private float llDataDeriv[];
+  private float usDataDeriv[];
 
   // The next index at which data should be placed in the circular arrays
   private int llIndex1; // sensor left
@@ -54,10 +54,10 @@ public class SensorData {
   // 1 - moving variance
   // 2 - moving standard deviation
   //
-  private double[] llStats1;
-  private double[] llStats2;
-  private double[] llStats3;
-  private double[] usStats;
+  private float[] llStats1;
+  private float[] llStats2;
+  private float[] llStats3;
+  private float[] usStats;
 
   /**
    * Constructor
@@ -66,12 +66,12 @@ public class SensorData {
     this.llRefs = 0;
     this.usRefs = 0;
 
-    this.llData1 = new double[LL_DATA_SIZE];
-    this.llData2 = new double[LL_DATA_SIZE];
-    this.llData3 = new double[LL_DATA_SIZE];
-    this.usData = new double[US_DATA_SIZE];
-    this.llDataDeriv = new double[LL_DATA_SIZE];
-    this.usDataDeriv = new double[US_DATA_SIZE];
+    this.llData1 = new float[LL_DATA_SIZE];
+    this.llData2 = new float[LL_DATA_SIZE];
+    this.llData3 = new float[LL_DATA_SIZE];
+    this.usData = new float[US_DATA_SIZE];
+    this.llDataDeriv = new float[LL_DATA_SIZE];
+    this.usDataDeriv = new float[US_DATA_SIZE];
 
     this.llIndex1 = 0;
     this.llIndex2 = 0;
@@ -81,10 +81,10 @@ public class SensorData {
     this.llFilled = false;
     this.usFilled = false;
 
-    this.llStats1 = new double[] { 0.0f, 0.0f, 0.0f };
-    this.llStats2 = new double[] { 0.0f, 0.0f, 0.0f };
-    this.llStats3 = new double[] { 0.0f, 0.0f, 0.0f };
-    this.usStats = new double[] { 0.0f, 0.0f, 0.0f };
+    this.llStats1 = new float[] {0.0f, 0.0f, 0.0f};
+    this.llStats2 = new float[] {0.0f, 0.0f, 0.0f};
+    this.llStats3 = new float[] {0.0f, 0.0f, 0.0f};
+    this.usStats = new float[] {0.0f, 0.0f, 0.0f};
 
     llRefsLock = new Object();
     usRefsLock = new Object();
@@ -101,7 +101,7 @@ public class SensorData {
    *
    * @param value the latest data value returned by the light sensor
    */
-  public void lightLevelHandler(double value, int sel) {
+  public void lightLevelHandler(float value, int sel) {
     synchronized (this.llDataLock) {
       // Update moving statistics.
       synchronized (this.llStatsLock) {
@@ -113,22 +113,40 @@ public class SensorData {
 
       // Insert latest sample.
       switch (sel) {
-        case 1: this.llData1[this.llIndex1++] = value; break;
-        case 2: this.llData2[this.llIndex2++] = value; break;
-        case 3: this.llData3[this.llIndex3++] = value; break;
+        case 1:
+          this.llData1[this.llIndex1] = value;
+          break;
+        case 2:
+          this.llData2[this.llIndex2] = value;
+          break;
+        case 3:
+          this.llData3[this.llIndex3] = value;
+          break;
       }
 
       // Insert latest sample derivative.
       synchronized (this.llDataDerivLock) {
         if (sel == 1) {
-          double lastValue = this.llData1[(this.llIndex1 - 1 + LL_DATA_SIZE) % LL_DATA_SIZE];
+          float lastValue = this.llData1[(this.llIndex1 - 1 + LL_DATA_SIZE) % LL_DATA_SIZE];
           this.llDataDeriv[this.llIndex1] = value - lastValue;
         }
       }
 
-      this.llIndex1 %= this.LL_DATA_SIZE;
-      this.llIndex2 %= this.LL_DATA_SIZE;
-      this.llIndex3 %= this.LL_DATA_SIZE;
+      switch (sel) {
+        case 1:
+          this.llIndex1++;
+          this.llIndex1 %= this.LL_DATA_SIZE;
+          break;
+        case 2:
+          this.llIndex2++;
+          this.llIndex2 %= this.LL_DATA_SIZE;
+          break;
+        case 3:
+          this.llIndex3++;
+          this.llIndex3 %= this.LL_DATA_SIZE;
+          break;
+      }
+
       if (!(this.llFilled) && this.llIndex1 == 0) {
         // Our circular array is now filled.
         this.llFilled = true;
@@ -141,7 +159,7 @@ public class SensorData {
    *
    * @param value the latest data value returned by the ultrasonic sensor
    */
-  public void ultrasonicHandler(double value) {
+  public void ultrasonicHandler(float value) {
     synchronized (this.usDataLock) {
       // Update moving statistics.
       synchronized (this.usStatsLock) {
@@ -153,7 +171,7 @@ public class SensorData {
 
       // Insert latest sample derivative.
       synchronized (this.usDataDerivLock) {
-        double lastValue = this.usData[(this.usIndex - 1 + US_DATA_SIZE) % US_DATA_SIZE];
+        float lastValue = this.usData[(this.usIndex - 1 + US_DATA_SIZE) % US_DATA_SIZE];
         this.usDataDeriv[this.usIndex] = value - lastValue;
       }
 
@@ -178,7 +196,8 @@ public class SensorData {
   /**
    * Get the number of external objects which access the ultrasonic sensor data.
    *
-   * @return the number of external objects which use the ultrasonic sensor data provided by this object
+   * @return the number of external objects which use the ultrasonic sensor data provided by this
+   *         object
    */
   public synchronized int getUSRefs() {
     return this.usRefs;
@@ -189,8 +208,8 @@ public class SensorData {
    *
    * @return a double array holding a copy of the original light sensor data
    */
-  public double[] getLLData(int sel) {
-    double[] data = null;
+  public float[] getLLData(int sel) {
+    float[] data = null;
     if (this.llFilled) {
       synchronized (this.llDataLock) {
         if (sel == 1) {
@@ -210,8 +229,8 @@ public class SensorData {
    *
    * @return the latest light sensor data value
    */
-  public double getLLDataLatest(int sel) {
-    double value;
+  public float getLLDataLatest(int sel) {
+    float value;
     // We can safely assume that at least one value has been recorded.
     synchronized (this.llDataLock) {
       if (sel == 1) {
@@ -230,8 +249,8 @@ public class SensorData {
    *
    * @return a double array holding a copy of the original ultrasonic sensor data
    */
-  public double[] getUSData() {
-    double[] data = null;
+  public float[] getUSData() {
+    float[] data = null;
     if (this.usFilled) {
       synchronized (this.usDataLock) {
         data = this.usData.clone();
@@ -245,8 +264,8 @@ public class SensorData {
    *
    * @return the latest ultrasonic sensor data value
    */
-  public double getUSDataLatest() {
-    double value;
+  public float getUSDataLatest() {
+    float value;
     // We can safely assume that at least one value has been recorded.
     synchronized (this.usDataLock) {
       value = this.usData[(this.usIndex - 1 + US_DATA_SIZE) % US_DATA_SIZE];
@@ -259,8 +278,8 @@ public class SensorData {
    *
    * @return a double array holding a copy of the derive of the original light sensor data
    */
-  public double[] getLLDataDeriv() {
-    double[] data = null;
+  public float[] getLLDataDeriv() {
+    float[] data = null;
     if (this.llFilled) {
       synchronized (this.llDataDerivLock) {
         data = this.llDataDeriv.clone();
@@ -288,8 +307,8 @@ public class SensorData {
    *
    * @return a double array holding a copy of the derive of the original ultrasonic sensor data
    */
-  public double[] getUSDataDeriv() {
-    double[] data = null;
+  public float[] getUSDataDeriv() {
+    float[] data = null;
     if (this.usFilled) {
       synchronized (this.usDataDerivLock) {
         data = this.usDataDeriv.clone();
@@ -315,10 +334,11 @@ public class SensorData {
   /**
    * Get the moving statistics of the light sensor data.
    *
-   * @return a double array holding the average, variance, and standard deviation of the light sensor data
+   * @return a double array holding the average, variance, and standard deviation of the light
+   *         sensor data
    */
-  public double[] getLLStats() {
-    double[] stats = null;
+  public float[] getLLStats() {
+    float[] stats = null;
     if (this.llFilled) {
       synchronized (this.llStatsLock) {
         stats = this.llStats1.clone();
@@ -330,10 +350,11 @@ public class SensorData {
   /**
    * Get the moving statistics of the ultrasonic sensor data.
    *
-   * @return a double array holding the average, variance, and standard deviation of the ultrasonic sensor data
+   * @return a double array holding the average, variance, and standard deviation of the ultrasonic
+   *         sensor data
    */
-  public double[] getUSStats() {
-    double[] stats = null;
+  public float[] getUSStats() {
+    float[] stats = null;
     if (this.usFilled) {
       synchronized (this.usStatsLock) {
         stats = this.usStats.clone();
@@ -398,23 +419,23 @@ public class SensorData {
    * @param index the index of the data value to remove from the moving statistics
    * @param val the new value to add to the moving statistics
    */
-  private void updateMovingStatistics(double[] stats, double[] data, int index, double val) {
-    double old = data[index];
+  private void updateMovingStatistics(float[] stats, float[] data, int index, float val) {
+    float old = data[index];
 
-    double n = data.length;
+    float n = data.length;
 
-    double oldAvg = stats[0];
-    double oldVar = stats[1];
-    double oldDev = stats[2];
+    float oldAvg = stats[0];
+    float oldVar = stats[1];
+    float oldDev = stats[2];
 
     //
     // Reference:
     //
     // [See http://jonisalonen.com/2014/efficient-and-accurate-rolling-standard-deviation]
     //
-    double newAvg = oldAvg + (val - old) / n;
-    double newVar = oldVar + (val - old) * (val - newAvg + old - oldAvg) / (n - 1);
-    double newDev = (double)Math.sqrt((double)newVar);
+    float newAvg = oldAvg + (val - old) / n;
+    float newVar = oldVar + (val - old) * (val - newAvg + old - oldAvg) / (n - 1);
+    float newDev = (float) Math.sqrt(newVar);
 
     stats[0] = newAvg;
     stats[1] = newVar;

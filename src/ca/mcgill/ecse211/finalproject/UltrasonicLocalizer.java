@@ -93,6 +93,7 @@ public class UltrasonicLocalizer {
 
     // Set the odo's new orientation.
     odo.setTheta(odo.getTheta() + theta_err);
+    Sound.beepSequenceUp();
   }
 
   /*

@@ -28,16 +28,19 @@ public class FinalProject {
 
   // Odometry-related constants
   public static final double WHEEL_RADIUS = 2.1;
-  public static final double WHEEL_BASE = 14.695;
+  public static final double WHEEL_BASE = 15.225;
 
   // Driver-related constants
   public static final int SPEED_FWD = 175;
-  public static final int SPEED_ROT = 75;
+  public static final int SPEED_ROT = 100;
 
   // Localization-related constants
   public static final int RISING_EDGE_THRESHOLD = 50;
   public static final int FALLING_EDGE_THRESHOLD = 70;
-  public static final double LIGHT_SENSOR_OFFSET = 4.9;
+  public static final float LIGHT_LEVEL_THRESHOLD = 0.35f;
+  public static final double LIGHT_SENSOR_OFFSET = 1.8;
+  public static final long MOVE_TIME_THRESHOLD = 3000; // milliseconds
+  public static final Waypoint DEBUG_REF_POS = new Waypoint(1, 1);
 
 
   // --------------------------------------------------------------------------------
@@ -46,13 +49,13 @@ public class FinalProject {
 
   // Wheel motors
   public static final EV3LargeRegulatedMotor leftMotor =
-    new EV3LargeRegulatedMotor(LocalEV3.get().getPort("A"));
+      new EV3LargeRegulatedMotor(LocalEV3.get().getPort("A"));
   public static final EV3LargeRegulatedMotor rightMotor =
-    new EV3LargeRegulatedMotor(LocalEV3.get().getPort("B"));
+      new EV3LargeRegulatedMotor(LocalEV3.get().getPort("B"));
 
   // Zip-line motor
   public static final EV3LargeRegulatedMotor zipMotor =
-    new EV3LargeRegulatedMotor(LocalEV3.get().getPort("D"));
+      new EV3LargeRegulatedMotor(LocalEV3.get().getPort("D"));
 
   // Sensor ports
   private static final Port usPort = LocalEV3.get().getPort("S4");
@@ -64,9 +67,10 @@ public class FinalProject {
   // --------------------------------------------------------------------------------
   // Main method
   // --------------------------------------------------------------------------------
-  
+
   /**
-   * Main method of the program, this is where all the objects are initialized and all the threads are started.
+   * Main method of the program, this is where all the objects are initialized and all the threads
+   * are started.
    */
   public static void main(String[] args) {
     // Suppress the warning we would reserve, since we do not close certain resources below.
@@ -85,21 +89,23 @@ public class FinalProject {
     SensorModes lsSensorm = new EV3ColorSensor(FinalProject.lsPortm);
     SampleProvider lsSampleProviderm = lsSensorm.getMode("Red");
 
+
     // Create SensorData object.
     SensorData sd = new SensorData();
 
     // Create UltrasonicPoller and LightPoller objects.
     UltrasonicPoller usPoller = new UltrasonicPoller(usSampleProvider, sd);
-    LightPoller lsPoller = new LightPoller(lsSampleProviderl, lsSampleProviderr, lsSampleProviderm, sd);
+    LightPoller lsPoller =
+        new LightPoller(lsSampleProviderl, lsSampleProviderr, lsSampleProviderm, sd);
 
 
 
     // Create Odometer object.
-    Odometer odometer = new Odometer(
-        FinalProject.leftMotor, FinalProject.rightMotor, FinalProject.WHEEL_RADIUS, FinalProject.WHEEL_BASE
-        );
+    Odometer odometer = new Odometer(FinalProject.leftMotor, FinalProject.rightMotor,
+        FinalProject.WHEEL_RADIUS, FinalProject.WHEEL_BASE);
 
-    Driver dr = new Driver(FinalProject.leftMotor, FinalProject.rightMotor, FinalProject.zipMotor, null);
+    Driver dr =
+        new Driver(FinalProject.leftMotor, FinalProject.rightMotor, FinalProject.zipMotor, null);
     UltrasonicLocalizer ul = new UltrasonicLocalizer(dr, odometer, sd);
     LightLocalizer ll = new LightLocalizer(dr, odometer, sd);
     Localizer loc = new Localizer(ul, ll, dr);
@@ -117,7 +123,7 @@ public class FinalProject {
     //
 
     // Create MainController object.
-//    MainController zipLineController = new MainController( [> ... <] );
+    // MainController zipLineController = new MainController( [> ... <] );
 
     dr.setSpeedLeftMotor(SPEED_ROT);
     dr.setSpeedRightMotor(SPEED_ROT);
@@ -128,14 +134,19 @@ public class FinalProject {
     disp.start();
 
     Button.waitForAnyPress();
-    ul.localize();
-    dr.rotate(-Math.toDegrees(odometer.getTheta()), false);
+    (new Thread() {
+      public void run() {
+        // Kill this program whenever the escape button is pressed on the EV3.
+        while (Button.waitForAnyPress() != Button.ID_ESCAPE);
+        System.exit(0);
+      }
+    }).start();
     
-//    dr.rotate(1080, true);
-
-    // Kill this program whenever the escape button is pressed on the EV3.
+//    ul.localize();
+    ll.localize();
+    // Wheel base test
+    //dr.rotate(90, false);
     while (Button.waitForAnyPress() != Button.ID_ESCAPE);
-
     System.exit(0);
   }
 
@@ -226,8 +237,8 @@ public class FinalProject {
     }
 
     // Convert the X/Y-coordinate (currently in grid lines) to centimeters.
-    double x = (double)(coords[0]) * FinalProject.BOARD_TILE_LENGTH;
-    double y = (double)(coords[1]) * FinalProject.BOARD_TILE_LENGTH;
+    double x = (double) (coords[0]) * FinalProject.BOARD_TILE_LENGTH;
+    double y = (double) (coords[1]) * FinalProject.BOARD_TILE_LENGTH;
 
     Waypoint waypoint = new Waypoint(x, y);
 

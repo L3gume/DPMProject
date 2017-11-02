@@ -45,7 +45,7 @@ public class Localizer {
     this.ll = ll;
     this.dr = dr;
 
-    ref_pos = new Waypoint(1,1);
+    ref_pos = FinalProject.DEBUG_REF_POS;
   }
 
   /**

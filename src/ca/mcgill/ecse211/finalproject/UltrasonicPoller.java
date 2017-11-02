@@ -31,7 +31,8 @@ public class UltrasonicPoller extends Thread {
    * Constructor
    *
    * @param sensor SampleProvider for the robot's ultrasonic sensor.
-   * @param sd SensorData object, all sensor data will be passed to it for easier processing and accessing.
+   * @param sd SensorData object, all sensor data will be passed to it for easier processing and
+   *        accessing.
    */
   public UltrasonicPoller(SampleProvider sensor, SensorData sd) {
     this.sensor = sensor;
@@ -52,15 +53,7 @@ public class UltrasonicPoller extends Thread {
         this.sd.ultrasonicHandler(this.data[0] * 100.0f);
         last_dist = this.data[0] * 100.f;
       } else {
-        // Sleep indefinitely until this thread is interrupted, signaling that sensor
-        // data may, once again, be needed.
-//        try {
-//          Thread.sleep(Long.MAX_VALUE);
-//        } catch (Exception e) {
-//          // ...
-//        }
-
-        //continue;
+        // ...
       }
 
       // Sleep for a bit.
@@ -73,9 +66,9 @@ public class UltrasonicPoller extends Thread {
 
     // Unreachable
   }
-  
+
   public synchronized float getLastDist() {
-	return last_dist;
+    return last_dist;
   }
 
 }

@@ -58,19 +58,11 @@ public class LightPoller extends Thread {
       // SensorData object has reached zero.
       if (this.sd.getLLRefs() > 0) {
         this.sensorLeft.fetchSample(this.dataLeft, 0);
-        this.sd.lightLevelHandler(this.dataLeft[0] * 100.f, 1);
+        this.sd.lightLevelHandler(this.dataLeft[0], 1);
         this.sensorRight.fetchSample(this.dataRight, 0);
-        this.sd.lightLevelHandler(this.dataRight[0] * 100.f, 2);
+        this.sd.lightLevelHandler(this.dataRight[0], 2);
       } else {
-        // Sleep indefinitely until this thread is interrupted, signaling that sensor
-        // data may, once again, be needed.
-        try {
-          Thread.sleep(Long.MAX_VALUE);
-        } catch (Exception e) {
-          // ...
-        }
-
-        continue;
+        //...
       }
 
       // Sleep for a bit.
