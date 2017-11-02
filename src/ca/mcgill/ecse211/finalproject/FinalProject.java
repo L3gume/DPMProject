@@ -32,6 +32,15 @@ public class FinalProject {
   // Driver-related constants
   public static final int SPEED_FWD = 175;
   public static final int SPEED_ROT = 75;
+  
+  // Zipline-related constants
+  public static final double ZIPLINE_ORIENTATION = 0.0;						// TODO this will be determined by values inputted over WiFi
+  public static final Waypoint ZIPLINE_START_POS = new Waypoint(0.0, 0.0);	// TODO this will be determined by values inputted over WiFi
+  public static final double ZIPLINE_ORIENTATION_THRESHOLD = Math.toRadians(2); 
+  public static final float ZIPLINE_TRAVERSAL_SPEED = 150.f;
+  public static final double FLOOR_LIGHT_READING = 0.1;		// TODO: calibrate this
+  public static final double FLOOR_READING_FILTER = 20;
+
 
 
   // --------------------------------------------------------------------------------
