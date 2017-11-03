@@ -26,12 +26,12 @@ public class MainController extends Thread {
   // Variables
   // --------------------------------------------------------------------------------
 
-  private Localizer localizer;
-  private UltrasonicLocalizer ultrasonicLocalizer;
-  private LightLocalizer lightLocalizer;
-  private Navigator navigator;
-  private ZipLine zipLine;
-  private Searcher searcher;
+  private Localizer loc;
+  private UltrasonicLocalizer ul;
+  private LightLocalizer ll;
+  private Navigator nav;
+  private ZipLine zip;
+  private Searcher srch;
 
   private State cur_state = State.IDLE; // Current state of the controller
   private String sub_state = null; // D_State of the currently executing subsystem
@@ -39,20 +39,20 @@ public class MainController extends Thread {
   /**
    * Constructor
    *
-   * @param localizer           Localizer object, manages the localization of the robot.
-   * @param ultrasonicLocalizer Ultrasonic localizer, works with the Localizer class to localize the robot.
-   * @param lightLocalizer      Light localizer, works with the Localizer class to localize the robot.
-   * @param navigator           Navigator, handles navigating the robot through sets of waypoints as well as avoiding obstacles.
-   * @param zipLine             Zipline controller, handles crossing the zip line.
-   * @param searcher            Searcher object, works with the navigator to look for the 'flag'.
+   * @param loc           Localizer object, manages the localization of the robot.
+   * @param ul Ultrasonic localizer, works with the Localizer class to localize the robot.
+   * @param ll      Light localizer, works with the Localizer class to localize the robot.
+   * @param nav           Navigator, handles navigating the robot through sets of waypoints as well as avoiding obstacles.
+   * @param zip             Zipline controller, handles crossing the zip line.
+   * @param srch            Searcher object, works with the navigator to look for the 'flag'.
    */
-  public MainController(Localizer localizer, UltrasonicLocalizer ultrasonicLocalizer, LightLocalizer lightLocalizer, Navigator navigator, ZipLine zipLine, Searcher searcher) {
-    this.localizer = localizer;
-    this.ultrasonicLocalizer = ultrasonicLocalizer;
-    this.lightLocalizer = lightLocalizer;
-    this.navigator = navigator;
-    this.zipLine = zipLine;
-    this.searcher = searcher;
+  public MainController(Localizer loc, UltrasonicLocalizer ul, LightLocalizer ll, Navigator nav, ZipLine zip, Searcher srch) {
+    this.loc = loc;
+    this.ul = ul;
+    this.ll = ll;
+    this.nav = nav;
+    this.zip = zip;
+    this.srch = srch;
   }
 
 
@@ -128,7 +128,7 @@ public class MainController extends Thread {
    */
   private State process_idle() {
     // TODO: Integrate the wifi class to determine the robot's goal.
-    return State.IDLE;
+    return State.LOCALIZING;
   }
 
   /**
@@ -137,16 +137,17 @@ public class MainController extends Thread {
    * @return new state, or same one if not done.
    */
   private State process_localizing() {
-    sub_state = localizer.process(); // the localizer handles controlling both the ultrasonic and light localizers.
+    sub_state = loc.process(); // the localizer handles controlling both the ultrasonic and light localizers.
 
-    if (localizer.isDone()) {
-      // Check for various conditions
+    if (loc.isDone()) {
+      nav.setPath(new Waypoint[] {new Waypoint(1, 1), new Waypoint(3, 3)});
+      return State.NAVIGATING;
     } else {
       return State.LOCALIZING;
     }
 
     // This is going to be a fallthrough.
-    return State.IDLE;
+    //return State.IDLE;
   }
 
   /**
@@ -155,16 +156,16 @@ public class MainController extends Thread {
    * @return new state, or same one if not done.
    */
   private State process_navigating() {
-    sub_state = navigator.process();
+    sub_state = nav.process();
 
-    if (navigator.isDone()) {
-      // Check for various conditions
+    if (nav.isDone()) {
+      return State.IDLE;
     } else {
       return State.NAVIGATING;
     }
 
     // This is going to be a fallthrough.
-    return State.IDLE;
+    //return State.IDLE;
   }
 
   /**
@@ -173,9 +174,9 @@ public class MainController extends Thread {
    * @return new state, or same one if not done.
    */
   private State process_ziplining() {
-    sub_state = zipLine.process();
+    sub_state = zip.process();
 
-    if (zipLine.isDone()) {
+    if (zip.isDone()) {
       // Check for various conditions
     } else {
       return State.ZIPLINING;
@@ -193,9 +194,9 @@ public class MainController extends Thread {
    */
   private State process_searching() {
     // TODO: Implement the Searcher class.
-    sub_state = searcher.process();
+    sub_state = srch.process();
 
-    if (searcher.isDone()) {
+    if (srch.isDone()) {
       // Check for various conditions
     } else {
       return State.SEARCHING;

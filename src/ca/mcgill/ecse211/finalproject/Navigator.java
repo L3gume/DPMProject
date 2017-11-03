@@ -24,13 +24,6 @@ public class Navigator {
   private SensorData sd;
 
   /*
-   * TODO: rework the path system to be a queue of waypoints to which we can add new waypoints
-   */
-
-  private Waypoint source;
-  private Waypoint destination;
-
-  /*
    * Navigation variables
    */
   private boolean navigating; // This is here only because the lab outline asks for it. It's
@@ -72,6 +65,7 @@ public class Navigator {
    * @return The new state of the navigator, as a string.
    */
   String process() {
+    updateOrientation();
     switch (cur_state) {
       case IDLE:
         cur_state = process_idle();
@@ -102,8 +96,25 @@ public class Navigator {
    * @return new state, or same if no need to navigate
    */
   private Nav_State process_idle() {
-    return Nav_State.IDLE;
-  }
+    // Being idle means we just started, intialize stuff and get started.
+    target_pos = getNextWaypoint(); // Get the next waypoint in the array, the first one in this
+                                    // case.
+    if (target_pos != null) { // Compute the distance and angle to the target position, if rotation is needed, set state to
+      // rotating, if not: move.
+      updateTargetInfo();
+      done = false;
+      if (Math.abs(angle_to_target_pos) > 0) {
+        return Nav_State.ROTATING;
+      } else if (dist_to_target_pos > 0) {
+        return Nav_State.MOVING;
+      }
+
+      // Fallthrough, shouldn't happen.
+      return Nav_State.IDLE;
+    }
+    // no more target position = done
+    return done ? Nav_State.IDLE : Nav_State.DONE;
+    }
 
   /**
    * Processes the ROTATING state of the navigator.
@@ -111,7 +122,22 @@ public class Navigator {
    * @return new state, or same if the angle to the target waypoint is still too high.
    */
   private Nav_State process_rotating() {
-    return Nav_State.IDLE;
+    updateTargetInfo();
+    if (Math.abs(angle_to_target_pos) > FinalProject.ANGLE_THRESHOLD) {
+      // As long as the angle to the target position is bigger than the threshold, keep rotating.
+      driver.rotate(Math.toDegrees(angle_to_target_pos), true);
+      return Nav_State.ROTATING;
+    } else {
+      // If our angle is smaller than the threshold, then we can move, start moving!
+      if (dist_to_target_pos > FinalProject.DISTANCE_THRESHOLD) {
+        min_dist = Double.MAX_VALUE; // reset
+        return Nav_State.MOVING;
+      } else {
+        // if angle AND distance are both small enough, we reached the point (happens rarely from
+        // the ROTATING state).
+        return Nav_State.REACHED_WAYPOINT;
+      }
+    }
   }
 
   /**
@@ -120,7 +146,26 @@ public class Navigator {
    * @return new state, or same if the distance to the target waypoint is still too high.
    */
   private Nav_State process_moving() {
-    return Nav_State.IDLE;
+    updateTargetInfo();
+    if (Math.abs(angle_to_target_pos) > FinalProject.ANGLE_THRESHOLD) {
+      return Nav_State.ROTATING; // We are a bit off, adjust.
+    } else if (dist_to_target_pos < min_dist) {
+      min_dist = dist_to_target_pos; // min_dist is continuously updated as long as the distance
+                                     // gets smaller.
+      if (dist_to_target_pos > FinalProject.DISTANCE_THRESHOLD) {
+        driver.moveForward(dist_to_target_pos, true);
+        return Nav_State.MOVING;
+      } else {
+        // if angle AND distance are both small enough, we reached the point
+        return Nav_State.REACHED_WAYPOINT;
+      }
+    } else {
+      // We missed the point (dist_to_target_pos > min_dist), turn around and get there!
+      if (dist_to_target_pos < 10) {
+        driver.moveBackward(dist_to_target_pos, false);
+      }
+      return Nav_State.ROTATING;
+    }
   }
 
   /**
@@ -139,7 +184,28 @@ public class Navigator {
    * @return new state.
    */
   private Nav_State process_reached() {
-    return Nav_State.IDLE;
+    updateTargetInfo();
+    if (dist_to_target_pos < FinalProject.DISTANCE_THRESHOLD) {
+      min_dist = Double.MAX_VALUE; // reset
+      driver.rotate(0, true);
+      target_pos = getNextWaypoint();
+      if (target_pos != null) {
+        // rotating, if not: move.
+        updateTargetInfo();
+        done = false;
+        if (Math.abs(angle_to_target_pos) > 0) {
+          return Nav_State.ROTATING;
+        } else if (dist_to_target_pos > 0) {
+          return Nav_State.MOVING;
+        }
+        // Fallthrough, shouldn't happen.
+        return Nav_State.IDLE;
+      } else {
+        return Nav_State.DONE;
+      }
+    } else {
+      return Nav_State.MOVING; // Will have to improve this.
+    }
   }
 
   /**
@@ -149,6 +215,7 @@ public class Navigator {
    * @return new state, or same if no need to navigate
    */
   private Nav_State process_done() {
+    done = true;
     return Nav_State.IDLE;
   }
 
