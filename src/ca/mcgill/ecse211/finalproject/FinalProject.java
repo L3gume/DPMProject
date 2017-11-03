@@ -18,8 +18,6 @@ public class FinalProject {
 
   public static final boolean DEBUG = false;
 
-
-
   // --------------------------------------------------------------------------------
   // Constants
   // --------------------------------------------------------------------------------
@@ -41,7 +39,18 @@ public class FinalProject {
   public static final float LIGHT_LEVEL_THRESHOLD = 0.30f;
   public static final double LIGHT_SENSOR_OFFSET = 1.8;
   public static final long MOVE_TIME_THRESHOLD = 3000; // milliseconds
-  public static final Waypoint DEBUG_REF_POS = new Waypoint(1, 1);
+  public static final Waypoint DEBUG_REF_POS = new Waypoint(1, 1);  
+  
+  // Poller-related constants
+  public static final long SLEEP_TIME = 20;
+  
+  // Zipline-related constants
+  public static final double ZIPLINE_ORIENTATION = 0.0;						// TODO this will be determined by values inputted over WiFi
+  public static final Waypoint ZIPLINE_START_POS = new Waypoint(0.0, 0.0);	// TODO this will be determined by values inputted over WiFi
+  public static final double ZIPLINE_ORIENTATION_THRESHOLD = Math.toRadians(2); 
+  public static final float ZIPLINE_TRAVERSAL_SPEED = 150.f;
+  public static final double FLOOR_LIGHT_READING = 0.1;		// TODO: calibrate this
+  public static final double FLOOR_READING_FILTER = 20;
 
 
   // --------------------------------------------------------------------------------
@@ -97,12 +106,9 @@ public class FinalProject {
     // Create SensorData object.
     SensorData sd = new SensorData();
 
-    // Create UltrasonicPoller and LightPoller objects.
-    UltrasonicPoller usPoller = new UltrasonicPoller(usSampleProvider, sd);
-    LightPoller lsPoller =
-        new LightPoller(lsMedianl, lsMedianr, lsMedianm, sd);
-    
-
+    // Create sensorPoller object
+    SensorPoller sensorPoller = new SensorPoller(lsSampleProviderl, 
+    		lsSampleProviderr, lsSampleProviderm, usSampleProvider, sd);
 
 
     // Create Odometer object.
@@ -114,7 +120,7 @@ public class FinalProject {
     UltrasonicLocalizer ul = new UltrasonicLocalizer(dr, odometer, sd);
     LightLocalizer ll = new LightLocalizer(dr, odometer, sd);
     Localizer loc = new Localizer(ul, ll, dr);
-    Display disp = new Display(LocalEV3.get().getTextLCD(), odometer, null, sd, usPoller);
+    Display disp = new Display(LocalEV3.get().getTextLCD(), odometer, null, sd, sensorPoller);
     //
     // TODO:
     //
@@ -132,9 +138,9 @@ public class FinalProject {
 
     dr.setSpeedLeftMotor(SPEED_ROT);
     dr.setSpeedRightMotor(SPEED_ROT);
+    
     // Start data threads.
-    usPoller.start();
-    lsPoller.start();
+    sensorPoller.start();
     odometer.start();
     disp.start();
 

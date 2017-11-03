@@ -15,7 +15,7 @@ public class Display extends Thread {
 	private static final long DISPLAY_PERIOD = 250;
 	private Odometer odo;
 	private SensorData sd;
-	private UltrasonicPoller up;
+	private SensorPoller sp;
 	private TextLCD t;
 	
 	
@@ -35,12 +35,12 @@ public class Display extends Thread {
 	 * @param sd
 	 *            SensorData object to get sensor readings
 	 */
-	public Display(final TextLCD t, Odometer odo, MainController mc, SensorData sd, UltrasonicPoller up) {
+	public Display(final TextLCD t, Odometer odo, MainController mc, SensorData sd, SensorPoller sp) {
 		this.t = t;
 		this.odo = odo;
 		//this.mc = mc;
 		this.sd = sd;
-		this.up = up;
+		this.sp = sp;
 	}
 
 	/**

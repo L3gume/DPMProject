@@ -227,6 +227,7 @@ public class SensorData {
   /**
    * Get the latest data value polled from the light sensor.
    *
+   * @param sel the light sensor you want to get data from (1 = left, 2 = right, 3 = middle)
    * @return the latest light sensor data value
    */
   public float getLLDataLatest(int sel) {
