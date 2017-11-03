@@ -9,6 +9,7 @@ import lejos.hardware.sensor.EV3ColorSensor;
 import lejos.hardware.sensor.EV3UltrasonicSensor;
 import lejos.hardware.sensor.SensorModes;
 import lejos.robotics.SampleProvider;
+import lejos.robotics.filter.MeanFilter;
 
 /**
  * Main class, contains the constants, motors, sensors and the main() method.
@@ -37,7 +38,7 @@ public class FinalProject {
   // Localization-related constants
   public static final int RISING_EDGE_THRESHOLD = 50;
   public static final int FALLING_EDGE_THRESHOLD = 70;
-  public static final float LIGHT_LEVEL_THRESHOLD = 0.35f;
+  public static final float LIGHT_LEVEL_THRESHOLD = 0.30f;
   public static final double LIGHT_SENSOR_OFFSET = 1.8;
   public static final long MOVE_TIME_THRESHOLD = 3000; // milliseconds
   public static final Waypoint DEBUG_REF_POS = new Waypoint(1, 1);
@@ -84,10 +85,13 @@ public class FinalProject {
     SampleProvider usSampleProvider = usSensor.getMode("Distance");
     SensorModes lsSensorl = new EV3ColorSensor(FinalProject.lsPortl);
     SampleProvider lsSampleProviderl = lsSensorl.getMode("Red");
+    SampleProvider lsMedianl = new MeanFilter(lsSampleProviderl, lsSampleProviderl.sampleSize());
     SensorModes lsSensorr = new EV3ColorSensor(FinalProject.lsPortr);
     SampleProvider lsSampleProviderr = lsSensorr.getMode("Red");
+    SampleProvider lsMedianr = new MeanFilter(lsSampleProviderr, lsSampleProviderr.sampleSize());
     SensorModes lsSensorm = new EV3ColorSensor(FinalProject.lsPortm);
     SampleProvider lsSampleProviderm = lsSensorm.getMode("Red");
+    SampleProvider lsMedianm = new MeanFilter(lsSampleProviderm, lsSampleProviderm.sampleSize());
 
 
     // Create SensorData object.
@@ -96,7 +100,8 @@ public class FinalProject {
     // Create UltrasonicPoller and LightPoller objects.
     UltrasonicPoller usPoller = new UltrasonicPoller(usSampleProvider, sd);
     LightPoller lsPoller =
-        new LightPoller(lsSampleProviderl, lsSampleProviderr, lsSampleProviderm, sd);
+        new LightPoller(lsMedianl, lsMedianr, lsMedianm, sd);
+    
 
 
 
@@ -142,7 +147,7 @@ public class FinalProject {
       }
     }).start();
     
-//    ul.localize();
+    ul.localize();
     ll.localize();
     // Wheel base test
     //dr.rotate(90, false);
