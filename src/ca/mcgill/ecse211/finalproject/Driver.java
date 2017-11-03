@@ -105,10 +105,10 @@ public class Driver {
   public void moveForward(double dist, boolean inst_ret) {
     setSpeedLeftMotor(FinalProject.SPEED_FWD);
     setSpeedRightMotor(FinalProject.SPEED_FWD);
-//    leftMotor.synchronizeWith(new EV3LargeRegulatedMotor[] {rightMotor});
+    leftMotor.synchronizeWith(new EV3LargeRegulatedMotor[] {rightMotor});
     leftMotor.rotate(convertDistance(dist), true);
     rightMotor.rotate(convertDistance(dist), inst_ret);
-//    leftMotor.endSynchronization();
+    leftMotor.endSynchronization();
   }
 
   /**
@@ -157,17 +157,49 @@ public class Driver {
   }
   
   /**
-   * 
+   * Stops the left wheel.
    */
   public void stopLeftWheel() {
     leftMotor.stop();
   }
   
   /**
-   * 
+   * Stops the right wheel.
    */
   public void stopRightWheel() {
     rightMotor.stop();
+  }
+  
+  /**
+   * Makes the left wheel go forward.
+   */
+  public void leftWheelForward() {
+    setSpeedLeftMotor(FinalProject.SPEED_FWD/2);
+    leftMotor.forward();
+  }
+  
+  /**
+   * Makes the right wheel go forward.
+   */
+  public void rightWheelForward() {
+    setSpeedRightMotor(FinalProject.SPEED_FWD/2);
+    rightMotor.forward();
+  }
+  
+  /**
+   * Makes the left wheel go backward.
+   */
+  public void leftWheelBackward() {
+    setSpeedLeftMotor(FinalProject.SPEED_FWD/2);
+    leftMotor.backward();
+  }
+  
+  /**
+   * Makes the right wheel go backward.
+   */
+  public void rightWheelBackward() {
+    setSpeedRightMotor(FinalProject.SPEED_FWD/2);
+    rightMotor.backward();
   }
   
   /**
