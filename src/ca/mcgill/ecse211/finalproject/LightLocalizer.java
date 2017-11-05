@@ -123,20 +123,25 @@ public class LightLocalizer {
       }
 
       if ((!found_y || !found_x)
-          && System.currentTimeMillis() - started_moving_t > FinalProject.MOVE_TIME_THRESHOLD
-          && (!left_stopped && !right_stopped)) {
-        if (forward) {
-          dr.setSpeedLeftMotor(150);
-          dr.setSpeedRightMotor(150);
-          dr.endlessMoveBackward();
-          started_moving_t = System.currentTimeMillis();
-          forward = false;
-        } else if (!forward) {
-          dr.setSpeedLeftMotor(150);
-          dr.setSpeedRightMotor(150);
-          dr.endlessMoveForward();
-          started_moving_t = System.currentTimeMillis();
-          forward = true;
+          && System.currentTimeMillis() - started_moving_t > FinalProject.MOVE_TIME_THRESHOLD) {
+        if (!left_stopped && !right_stopped) {
+          if (forward) {
+            dr.setSpeedLeftMotor(150);
+            dr.setSpeedRightMotor(150);
+            dr.endlessMoveBackward();
+            started_moving_t = System.currentTimeMillis();
+            forward = false;
+          } else if (!forward) {
+            dr.setSpeedLeftMotor(150);
+            dr.setSpeedRightMotor(150);
+            dr.endlessMoveForward();
+            started_moving_t = System.currentTimeMillis();
+            forward = true;
+          }
+        } else if (left_stopped && !right_stopped) {
+
+        } else if (!left_stopped && right_stopped) {
+
         }
       }
       try {
@@ -144,6 +149,7 @@ public class LightLocalizer {
       } catch (Exception e) {
         System.out.println("can't pausse");
       }
+
     }
 
     sd.decrementLLRefs();

@@ -51,6 +51,10 @@ public class FinalProject {
   public static final float ZIPLINE_TRAVERSAL_SPEED = 150.f;
   public static final double FLOOR_LIGHT_READING = 0.1;		// TODO: calibrate this
   public static final double FLOOR_READING_FILTER = 20;
+  
+  // Navigation-related constants
+  public static final double ANGLE_THRESHOLD = Math.toRadians(2);
+  public static final double DISTANCE_THRESHOLD = 2;
 
 
   // --------------------------------------------------------------------------------
@@ -121,6 +125,8 @@ public class FinalProject {
     LightLocalizer ll = new LightLocalizer(dr, odometer, sd);
     Localizer loc = new Localizer(ul, ll, dr);
     Display disp = new Display(LocalEV3.get().getTextLCD(), odometer, null, sd, sensorPoller);
+    Navigator nav = new Navigator(dr, odometer, sd);
+
     //
     // TODO:
     //
@@ -134,7 +140,7 @@ public class FinalProject {
     //
 
     // Create MainController object.
-    // MainController zipLineController = new MainController( [> ... <] );
+    MainController cont = new MainController(loc, ul, ll, nav, null, null);
 
     dr.setSpeedLeftMotor(SPEED_ROT);
     dr.setSpeedRightMotor(SPEED_ROT);
@@ -152,9 +158,7 @@ public class FinalProject {
         System.exit(0);
       }
     }).start();
-    
-    ul.localize();
-    ll.localize();
+    cont.start();
     // Wheel base test
     //dr.rotate(90, false);
     while (Button.waitForAnyPress() != Button.ID_ESCAPE);
