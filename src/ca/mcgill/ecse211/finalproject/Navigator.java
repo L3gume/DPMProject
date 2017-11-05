@@ -26,7 +26,6 @@ public class Navigator {
   /*
    * Navigation variables
    */
-  private boolean navigating; // This is here only because the lab outline asks for it. It's
   private Nav_State cur_state = Nav_State.IDLE;
   private Waypoint[] path; // The set of waypoints the robot will have to travel, initialized by the setPath() method.
   private Waypoint target_pos = null; // Target waypoint
@@ -174,7 +173,7 @@ public class Navigator {
    * @return new state, or same if not done avoiding the obstacle.
    */
   private Nav_State process_avoiding() {
-    // TODO: Integrate P-Controller for obstacle avoidance
+    // TODO: Integrate P-Controller for obstacle avoidance (or whatever works)
     return Nav_State.IDLE;
   }
 
