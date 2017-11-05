@@ -25,7 +25,6 @@ hs_err_pid*
 .idea/
 *.iml
 /bin/
-<<<<<<< HEAD
 
 # Eclipse files
 
@@ -36,5 +35,3 @@ hs_err_pid*
 build/
 META-INF/
 *.MF
-=======
->>>>>>> dev-halestorm962
