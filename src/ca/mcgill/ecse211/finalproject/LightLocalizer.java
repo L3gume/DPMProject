@@ -131,7 +131,7 @@ public class LightLocalizer {
             dr.endlessMoveBackward();
             started_moving_t = System.currentTimeMillis();
             forward = false;
-          } else if (!forward) {
+          } else {
             dr.setSpeedLeftMotor(150);
             dr.setSpeedRightMotor(150);
             dr.endlessMoveForward();
@@ -139,15 +139,35 @@ public class LightLocalizer {
             forward = true;
           }
         } else if (left_stopped && !right_stopped) {
-
+          if (forward) {
+            dr.setSpeedRightMotor(100);
+            dr.rightMotorBackward();
+            started_moving_t = System.currentTimeMillis();
+            forward = false;
+          } else {
+            dr.setSpeedRightMotor(100);
+            dr.rightMotorForward();
+            started_moving_t = System.currentTimeMillis();
+            forward = true;
+          }
         } else if (!left_stopped && right_stopped) {
-
+          if (forward) {
+            dr.setSpeedLeftMotor(100);
+            dr.leftMotorBackward();
+            started_moving_t = System.currentTimeMillis();
+            forward = false;
+          } else {
+            dr.setSpeedLeftMotor(100);
+            dr.leftMotorForward();
+            started_moving_t = System.currentTimeMillis();
+            forward = true;
+          }
         }
       }
       try {
         Thread.sleep(30);
       } catch (Exception e) {
-        System.out.println("can't pausse");
+        System.out.println("can't pause");
       }
 
     }
