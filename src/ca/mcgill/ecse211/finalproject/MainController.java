@@ -1,5 +1,7 @@
 package ca.mcgill.ecse211.finalproject;
 
+import lejos.hardware.Button;
+
 /**
  * Main controller
  * This class is the main thread of the program and the root of the state machine that will control every action.
@@ -140,8 +142,7 @@ public class MainController extends Thread {
     sub_state = loc.process(); // the localizer handles controlling both the ultrasonic and light localizers.
 
     if (loc.isDone()) {
-      nav.setPath(new Waypoint[] {new Waypoint(1, 1), new Waypoint(3, 3)});
-      return State.NAVIGATING;
+      return State.IDLE;
     } else {
       return State.LOCALIZING;
     }

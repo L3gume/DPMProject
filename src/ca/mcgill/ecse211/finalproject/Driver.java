@@ -173,7 +173,7 @@ public class Driver {
   /**
    * Makes the left wheel go forward.
    */
-  public void leftWheelForward() {
+  public void leftMotorForward() {
     setSpeedLeftMotor(FinalProject.SPEED_FWD/2);
     leftMotor.forward();
   }
@@ -181,7 +181,7 @@ public class Driver {
   /**
    * Makes the right wheel go forward.
    */
-  public void rightWheelForward() {
+  public void rightMotorForward() {
     setSpeedRightMotor(FinalProject.SPEED_FWD/2);
     rightMotor.forward();
   }
@@ -189,7 +189,7 @@ public class Driver {
   /**
    * Makes the left wheel go backward.
    */
-  public void leftWheelBackward() {
+  public void leftMotorBackward() {
     setSpeedLeftMotor(FinalProject.SPEED_FWD/2);
     leftMotor.backward();
   }
@@ -197,7 +197,7 @@ public class Driver {
   /**
    * Makes the right wheel go backward.
    */
-  public void rightWheelBackward() {
+  public void rightMotorBackward() {
     setSpeedRightMotor(FinalProject.SPEED_FWD/2);
     rightMotor.backward();
   }

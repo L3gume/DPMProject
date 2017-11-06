@@ -40,7 +40,7 @@ public class FinalProject {
   public static final int FALLING_EDGE_THRESHOLD = 70;
   public static final float LIGHT_LEVEL_THRESHOLD = 0.30f;
   public static final double LIGHT_SENSOR_OFFSET = 1.8;
-  public static final long MOVE_TIME_THRESHOLD = 3000; // milliseconds
+  public static final long MOVE_TIME_THRESHOLD = 4000; // milliseconds
   public static final Waypoint DEBUG_REF_POS = new Waypoint(1, 1);
   
   // Navigation-related constants
@@ -143,14 +143,6 @@ public class FinalProject {
     odometer.start();
     disp.start();
 
-    Button.waitForAnyPress();
-    (new Thread() {
-      public void run() {
-        // Kill this program whenever the escape button is pressed on the EV3.
-        while (Button.waitForAnyPress() != Button.ID_ESCAPE);
-        System.exit(0);
-      }
-    }).start();
     cont.start();
     // Wheel base test
     //dr.rotate(90, false);
