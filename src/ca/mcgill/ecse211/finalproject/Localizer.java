@@ -21,16 +21,16 @@ public class Localizer {
   private boolean skip_ultrasonic = false; // Tells whether or not to skip the ultrasonic localization.
   private boolean done = false; // Tells whether or not we are done localizing.
   
-  private Waypoint ref_pos;
+  private static Waypoint ref_pos;
 
   /**
    * Enum representing the state of the localizer.
    */
-  public enum loc_state {
+  public enum Loc_State {
     IDLE, NOT_LOCALIZED, ULTRASONIC, LIGHT, DONE
   }
 
-  private loc_state cur_state = loc_state.IDLE;
+  private Loc_State cur_state = Loc_State.IDLE;
 
   /**
    * Constructor
@@ -44,6 +44,8 @@ public class Localizer {
     this.ul = ul;
     this.ll = ll;
     this.dr = dr;
+
+    ref_pos = FinalProject.DEBUG_REF_POS;
   }
 
   /**
@@ -76,7 +78,7 @@ public class Localizer {
        * Space reserved for special cases, shouldn't be needed here.
        */
       
-      return cur_state.toString(); // return the current loc_state as a string (controller sub-state)
+      return cur_state.toString(); // return the current Loc_State as a string (controller sub-state)
   }
 
   /* D_State processing methods */
@@ -86,8 +88,8 @@ public class Localizer {
    *
    * @return new state.
    */
-  private loc_state process_idle() {
-    return loc_state.IDLE;
+  private Loc_State process_idle() {
+    return Loc_State.NOT_LOCALIZED;
   }
 
   /**
@@ -95,11 +97,11 @@ public class Localizer {
    *
    * @return new state.
    */
-  private loc_state process_notLocalized() {
+  private Loc_State process_notLocalized() {
 //    dr.rotate(360, true, true); // Start rotating
 
     // Fancy ternary nonsense!
-    return skip_ultrasonic ? loc_state.LIGHT : loc_state.ULTRASONIC;
+    return skip_ultrasonic ? Loc_State.LIGHT : Loc_State.ULTRASONIC;
   }
 
   /**
@@ -107,19 +109,9 @@ public class Localizer {
    *
    * @return new state.
    */
-  private loc_state process_ultrasonic() {
-//    if (!localizing) {
-//      return loc_state.IDLE;
-//    }
-//
-//    if (up.isAlive()) {
-//      up.setMode(u_mode.LOCALIZATION);
-//    } else {
-//      System.out.println("[LOCALIZER] UltrasonicPoller not running!");
-//      return loc_state.IDLE; // That's a big problem.
-//    }
-//    ul.localize();
-    return loc_state.LIGHT; // Go directly to light localization.
+  private Loc_State process_ultrasonic() {
+    ul.localize();
+    return Loc_State.LIGHT; // Go directly to light localization.
   }
 
   /**
@@ -127,19 +119,9 @@ public class Localizer {
    *
    * @return new state.
    */
-  private loc_state process_light() {
-//    if (!localizing) {
-//      return loc_state.IDLE;
-//    }
-
-//    if (cp.isAlive()) {
-//      cp.setMode(l_mode.LOCALIZATION);
-//    } else {
-//      System.out.println("[LOCALIZER] ColorPoller not running!");
-//      return loc_state.IDLE; // That's a big problem.
-//    }
-//    ll.localize();
-    return loc_state.DONE;
+  private Loc_State process_light() {
+    ll.localize();
+    return Loc_State.DONE;
   }
 
   /**
@@ -147,7 +129,7 @@ public class Localizer {
    *
    * @return new state.
    */
-  private loc_state process_done() {
+  private Loc_State process_done() {
     localizing = false;
     done = true;
     
@@ -155,20 +137,7 @@ public class Localizer {
     if (skip_ultrasonic) {
       skip_ultrasonic = false;
     }
-    return loc_state.IDLE;
-  }
-
-  /**
-   * Sets the reference position to base the localization upon. E.g: the starting position of the position before/after the zip line
-   *
-   * @param ref_pos a Waypoint representing the reference position.
-   */
-  public void setRefPos(Waypoint ref_pos) {
-    //TODO: skip the ultrasonic localization if the ref_pos isn't the starting position.
-
-//    this.ref_pos = ref_pos;
-//    ul.setRefPos(this.ref_pos);
-//    ll.setRefPos(this.ref_pos);
+    return Loc_State.IDLE;
   }
 
   /**
@@ -176,8 +145,15 @@ public class Localizer {
    *
    * @return Waypoint representing the current reference position.
    */
-  public Waypoint getRefPos() {
+  public static Waypoint getRefPos() {
     return ref_pos;
+  }
+  
+  /**
+   * 
+   */
+  public void setRefPos(Waypoint new_pos) {
+	  Localizer.ref_pos = new_pos;
   }
 
   /**

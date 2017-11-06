@@ -3,8 +3,9 @@ package ca.mcgill.ecse211.finalproject;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 
 /**
- * Handles crossing the zip line
+ * Handles aligning with, crossing, and dismounting the zip line.
  *
+ * @author Alex Hale
  * @author Justin Tremblay
  * @author Josh Inscoe
  */
@@ -18,6 +19,14 @@ public class ZipLine {
   }
 
   // --------------------------------------------------------------------------------
+  // Object instances of other classes
+  // --------------------------------------------------------------------------------
+  private EV3LargeRegulatedMotor zipMotor;
+  private Driver driver;
+  private Odometer odometer;
+  private SensorData sd;
+
+  // --------------------------------------------------------------------------------
   // Constants
   // --------------------------------------------------------------------------------
 
@@ -25,14 +34,9 @@ public class ZipLine {
   // --------------------------------------------------------------------------------
   // Variables
   // --------------------------------------------------------------------------------
-
-  private EV3LargeRegulatedMotor zipMotor;
-  private Driver driver;
-  private Odometer odometer;
-  private SensorData sd;
-
   private Zip_State cur_state = Zip_State.IDLE;
   private boolean done = false;
+  private int floor_filter = 0;
 
   /**
    * Constructor
@@ -75,48 +79,94 @@ public class ZipLine {
   }
 
   /**
-   * process the IDLE state
+   * Process the IDLE state. Move to ALIGNING state if haven't crossed yet, otherwise
+   * wait here.
    *
-   * @return new state, or same if no need to cross the zip line.
+   * @return ALIGNING state if not yet crossed, IDLE state if crossed
    */
   private Zip_State process_idle() {
-    return Zip_State.IDLE;
+    // no need to suspend the odometer - we'll re-localize after crossing
+    
+    if (!done) {
+      return Zip_State.ALIGNING;   // haven't crossed yet => go to alignment
+    } else {
+      return Zip_State.IDLE;      // already crossed => chill here
+    }
   }
 
   /**
-   * process the aligning state
+   * Process the ALIGNING state. Align the robot with the zip line, then send
+   * it to MOVING.
    *
-   * @return new state, or same if the angle to the zip line is still too high.
+   * @return MOVING state if aligned, ALIGNING state if not yet aligned
    */
   private Zip_State process_aligning() {
-    return Zip_State.IDLE;
+	// check the error between our current heading and the zipline start point
+    double err_theta = angleToPos(odometer, FinalProject.ZIPLINE_START_POS);	// TODO this value is passed in over WiFi, might be a different variable
+    
+    if (Math.abs(err_theta) > FinalProject.ZIPLINE_ORIENTATION_THRESHOLD) {
+    	driver.rotate(err_theta, false);	// rotate to new vector and wait until finished rotating
+        return Zip_State.ALIGNING;			// then redo this state to check if we're aligned
+    } else {
+      return Zip_State.MOVING;		// once we're satisfactorily aligned, ~move~ on to moving
+    }
   }
 
   /**
-   * process the moving state
+   * Process the MOVING state. Move the robot onto the starting portion 
+   * of the zip line.
    *
-   * @return new state, or same if still grounded.
+   * @return IDLE state if missed the zipline, ZIPLING if we made it on
    */
   private Zip_State process_moving() {
-    return Zip_State.IDLE;
+    // start the zipline motor and move forward two blocks
+    driver.startTopMotor();
+    driver.moveForward(2*FinalProject.BOARD_TILE_LENGTH, false);	// wait while moving
+    
+    // if we're still on the ground, we missed the zip line - navigate back to start of zip line
+    if (sd.getLLDataLatest(1) > FinalProject.FLOOR_LIGHT_READING) {
+    	// TODO leave this class, go back to navigating, navigate to start of zip line
+    	return Zip_State.IDLE;
+    } else {
+    	// we're on the zip line!
+    	return Zip_State.ZIPLINING;
+    }
   }
 
   /**
-   * process the ziplining state (when the robot is hanging from the zipline)
+   * Process the ZIPLINING state. Detect when the robot has landed, move away from the zip line
+   * and head to the DONE state.
    *
-   * @return new state, or same if still not grounded.
+   * @return ZIPLINING if we're still ziplining, DONE if we're off the zip line
    */
   private Zip_State process_ziplining() {
-    return Zip_State.IDLE;
+	  // if we're getting light readings, we're approaching the floor
+	  if (sd.getLLDataLatest(1) > FinalProject.FLOOR_LIGHT_READING) {
+	      if (floor_filter < FinalProject.FLOOR_READING_FILTER) {
+	        // make sure that we're not getting erroneous readings
+	    	  	// we really don't want to be stranded on the zip line!
+	    	floor_filter++;
+	        return Zip_State.ZIPLINING;
+	      } else {
+	        // we've arrived at the end of the zipline, and the wheels should be touching the ground
+	        driver.moveForward(FinalProject.BOARD_TILE_LENGTH * 2, false); 	// move away from the zipline
+	        driver.stopBoth(); 													// stop the main motors
+	        return Zip_State.DONE;
+	      }
+      } else {
+    	  // if we're not near the floor, keep ziplining
+    	  return Zip_State.ZIPLINING;
+      }
   }
 
   /**
-   * process the done state
+   * Process the DONE state. Stop the zipline motor, reset a few variables, then go back to IDLE.
    *
-   * @return new state
+   * @return IDLE state
    */
   private Zip_State process_done() {
     done = true;
+    floor_filter = 0;			// reset the floor filter in case we need to do this again
     return Zip_State.IDLE;
   }
 
@@ -127,5 +177,24 @@ public class ZipLine {
    */
   public boolean isDone() {
     return done;
+  }
+  
+  /**
+   * Helper method that computes the angle difference between the robot's 
+   * current position and a waypoint.
+   * 
+   * @param odo current odometer position
+   * @param _pos waypoint we're checking against
+   * @return the angle between our current heading and the waypoint
+   */
+  public static double angleToPos(Odometer odo, Waypoint _pos) {
+    // TODO verify the logic in this function - it was just copy-pasted from Lab 5
+	double orientation_angle = odo.getTheta();
+    double orientation_vect[] = new double[] {Math.cos(orientation_angle), Math.sin(orientation_angle)};
+    double vect_to_pos[] = new double [] {_pos.x * FinalProject.BOARD_TILE_LENGTH - odo.getX(), _pos.y * FinalProject.BOARD_TILE_LENGTH - odo.getY()};
+    double angle = Math.atan2(vect_to_pos[1] * orientation_vect[0] - vect_to_pos[0] * orientation_vect[1],
+        orientation_vect[0] * vect_to_pos[0] + orientation_vect[1] * vect_to_pos[1]);
+
+    return angle;
   }
 }
