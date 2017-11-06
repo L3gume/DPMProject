@@ -39,7 +39,8 @@ public class FinalProject {
   public static final float LIGHT_LEVEL_THRESHOLD = 0.30f;
   public static final double LIGHT_SENSOR_OFFSET = 1.8;
   public static final long MOVE_TIME_THRESHOLD = 4000; // milliseconds
-  public static final Waypoint DEBUG_REF_POS = new Waypoint(1, 1);
+  public static final Waypoint DEBUG_REF_POS = new Waypoint(2, 2);
+  public static final Waypoint DEBUG_START_POS = new Waypoint(1, 1);
   
   // Poller-related constants
   public static final long SLEEP_TIME = 20;

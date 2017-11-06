@@ -50,21 +50,17 @@ public class LightLocalizer {
     boolean right_stopped = false;
     boolean turned = false;
     boolean forward = true;
+    double ref_angle = 0;
 
     long started_moving_t = 0;
 
-    sd.incrementLLRefs();
-    sleepThread(1);
-    ref_pos = Localizer.getRefPos();
-
-    // // if not aligned properly turn to 0.
-    // if (odo.getTheta() < Math.toRadians(5)) {
-    // dr.rotate(-Math.toDegrees(odo.getTheta()), false);
-    // } else if (odo.getTheta() > Math.toRadians(355)) {
-    // dr.rotate(Math.toDegrees(2 * Math.PI - odo.getTheta()), false);
-    // }
-
-    double align_ang = Math.toRadians(0) - odo.getTheta();
+    sd.incrementLLRefs(); // increment the references to the light poller to make the sensorData
+                          // start gathering data.
+    sleepThread(1); // wait to make sure the sensorData class has time to get some data.
+    ref_pos = Localizer.getRefPos(); // Get the reference position from the Localizer class.
+    ref_angle = getReferenceAngle();
+    
+    double align_ang = Math.toRadians(ref_angle) - odo.getTheta();
     if (align_ang > Math.toRadians(180)) {
       align_ang = align_ang - Math.toRadians(360);
     }
@@ -82,6 +78,7 @@ public class LightLocalizer {
           left_stopped = true;
         }
         if (sd.getLLDataLatest(2) < FinalProject.LIGHT_LEVEL_THRESHOLD && !right_stopped) {
+          // Right sensor hit the line.
           dr.stopRightWheel();
           right_stopped = true;
         }
@@ -122,6 +119,12 @@ public class LightLocalizer {
         }
       }
 
+      /*
+       * FAILSAFE - TODO: more testing.
+       * 
+       * if the robot hasn't found a line after 4 seconds, go backwards. Helps covering the cases
+       * where the robot isn't in the bottom left quadrant (the ref position being the origin)
+       */
       if ((!found_y || !found_x)
           && System.currentTimeMillis() - started_moving_t > FinalProject.MOVE_TIME_THRESHOLD) {
         if (!left_stopped && !right_stopped) {
@@ -187,5 +190,25 @@ public class LightLocalizer {
       System.out.println("[ULTRASONIC] Can't sleep thread");
       // TODO: handle exception
     }
+  }
+  
+  private double getReferenceAngle() {
+    double error = 8.0;
+    double theta = Math.toDegrees(odo.getTheta());
+    if (theta + error >= 0 && theta - error <= 0) {
+      return 0;
+    } else if (theta + error >= 360 && theta - error <= 360) {
+      return 0;
+    } else if (theta + error >= 90 && theta - error <= 90) {
+      return 90;
+    } else if (theta + error >= 180 && theta - error <= 180) {
+      return 180;
+    } else if (theta + error >= 270 && theta - error <= 270) {
+      return 270;
+    } else {
+      // Make the robot align to 0.
+      dr.rotate(-theta, false);
+      return 0;
+    }    
   }
 }
