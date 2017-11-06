@@ -22,6 +22,11 @@ public class FinalProject {
   // Constants
   // --------------------------------------------------------------------------------
 
+  // Wifi constants.
+  public static final String SERVER_IP = "192.168.43.173"; // CHANGE THIS TO YOUR COMPUTER'S IP
+  public static final int TEAM_NB = 1;
+  public static final boolean ENABLE_WIFI_DEBUG = false;
+  
   // Board-related constants
   public static final double BOARD_TILE_LENGTH = 30.48;
 
@@ -76,8 +81,7 @@ public class FinalProject {
   private static final Port usPort = LocalEV3.get().getPort("S4");
   private static final Port lsPortl = LocalEV3.get().getPort("S1");
   private static final Port lsPortr = LocalEV3.get().getPort("S2");
-  private static final Port lsPortm = LocalEV3.get().getPort("S3");
-
+  private static final Port lsPortm = LocalEV3.get().getPort("S3");  
 
   // --------------------------------------------------------------------------------
   // Main method

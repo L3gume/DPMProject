@@ -1,5 +1,7 @@
 package ca.mcgill.ecse211.finalproject;
 
+import java.util.Map;
+import ca.mcgill.ecse211.WiFiClient.WifiConnection;
 import lejos.hardware.Button;
 
 /**
@@ -19,6 +21,37 @@ public class MainController extends Thread {
 
   ;
 
+  // --------------------------------------------------------------------------------
+  // Game data
+  // --------------------------------------------------------------------------------
+  
+  static Waypoint redTeamStart;
+  static Waypoint greenTeamStart;
+  
+  static int RedTeam; // Red team group number
+  static int GreenTeam; // Green team group number
+  static int RedCorner; // red team's starting corner
+  static int GreenCorner; // green team's starting corner
+  static int OG; // Color of green team's flag
+  static int OR; // Color of red team's flag
+  static Waypoint Red_LL; // lower left hand corner of the red zone.
+  static Waypoint Red_UR; // upper right hand corner of the red zone.
+  static Waypoint Green_LL; // lower left hand corner of the green zone.
+  static Waypoint Green_UR; // upper right hand corner of the green zone.
+  static Waypoint ZC_R; // end point corresponding to zip line in red zone.
+  static Waypoint ZO_R; // with ZC_R indicates direction of zip line.
+  static Waypoint ZC_G; // end point corresponding to zip line in green zone.
+  static Waypoint ZO_G; // with ZC_G indicates direction of zip line.
+  static Waypoint SH_LL; // lower left corner of horizontal shallow water zone.
+  static Waypoint SH_UR; // upper right corner of horizontal shallow water zone.
+  static Waypoint SV_LL; // lower left corner of vertical shallow water zone.
+  static Waypoint SV_UR; // upper right corner of vertical shallow water zone.
+  static Waypoint SR_LL; // lower left corner of red search zone.
+  static Waypoint SR_UR; // upper right corner of red search zone.
+  static Waypoint SG_LL; // lower left corner of green search zone.
+  static Waypoint SG_UR; // upper right corner of green search zone.
+  
+  
   // --------------------------------------------------------------------------------
   // Constants
   // --------------------------------------------------------------------------------
@@ -211,6 +244,68 @@ public class MainController extends Thread {
    * Establishes the connection with the server and updates the game variables in order to get the state machine going.
    */
   private void getGameData() {
-    // TODO
+    WifiConnection conn = new WifiConnection(FinalProject.SERVER_IP, FinalProject.TEAM_NB, FinalProject.ENABLE_WIFI_DEBUG);
+    try {
+      @SuppressWarnings("rawtypes")
+      Map data = conn.getData();
+      
+      RedTeam = ((Long) data.get("RedTeam")).intValue();
+      GreenTeam = ((Long) data.get("GreenTeam")).intValue();
+      RedCorner = ((Long) data.get("RedCorner")).intValue();
+      GreenCorner = ((Long) data.get("GreenCorner")).intValue();
+      OG = ((Long) data.get("OG")).intValue();
+      OR = ((Long) data.get("OR")).intValue();
+      Red_LL = new Waypoint(((Long) data.get("Red_LL_x")).intValue(), ((Long) data.get("Red_LL_y")).intValue());
+      Red_UR = new Waypoint(((Long) data.get("Red_UR_x")).intValue(), ((Long) data.get("Red_UR_y")).intValue());
+      Green_LL = new Waypoint(((Long) data.get("Green_LL_x")).intValue(), ((Long) data.get("Green_LL_y")).intValue());
+      Green_UR = new Waypoint(((Long) data.get("Green_UR_x")).intValue(), ((Long) data.get("Green_UR_y")).intValue());
+      ZC_R = new Waypoint(((Long) data.get("ZC_R_x")).intValue(), ((Long) data.get("ZC_R_y")).intValue());
+      ZO_R = new Waypoint(((Long) data.get("ZO_R_x")).intValue(), ((Long) data.get("ZO_R_y")).intValue());
+      ZC_G = new Waypoint(((Long) data.get("ZC_G_x")).intValue(), ((Long) data.get("ZC_G_y")).intValue());
+      ZO_G = new Waypoint(((Long) data.get("ZO_G_x")).intValue(), ((Long) data.get("ZO_G_y")).intValue());
+      SH_LL = new Waypoint(((Long) data.get("SH_LL_x")).intValue(), ((Long) data.get("SH_LL_y")).intValue());
+      SH_UR = new Waypoint(((Long) data.get("SH_UR_x")).intValue(), ((Long) data.get("SH_UR_y")).intValue());
+      SV_LL = new Waypoint(((Long) data.get("SV_LL_x")).intValue(), ((Long) data.get("SV_LL_y")).intValue());
+      SV_UR = new Waypoint(((Long) data.get("SV_UR_x")).intValue(), ((Long) data.get("SV_UR_y")).intValue());
+      SG_LL = new Waypoint(((Long) data.get("SG_LL_x")).intValue(), ((Long) data.get("SG_LL_y")).intValue());
+      SG_UR = new Waypoint(((Long) data.get("SG_UR_x")).intValue(), ((Long) data.get("SG_UR_y")).intValue());
+      SR_LL = new Waypoint(((Long) data.get("SR_LL_x")).intValue(), ((Long) data.get("SR_LL_y")).intValue());
+      SR_UR = new Waypoint(((Long) data.get("SR_UR_x")).intValue(), ((Long) data.get("SR_UR_y")).intValue());
+      
+      switch (RedCorner) {
+        case 1:
+          redTeamStart = new Waypoint(1, 1);
+          break;
+        case 2:
+          redTeamStart = new Waypoint(11, 1);
+          break;
+        case 3:
+          redTeamStart = new Waypoint(11, 11);
+          break;
+        case 4:
+          redTeamStart = new Waypoint(1, 11);
+          break;
+      }
+      
+      switch (GreenCorner) {
+        case 1:
+          greenTeamStart = new Waypoint(1, 1);
+          break;
+        case 2:
+          greenTeamStart = new Waypoint(11, 1);
+          break;
+        case 3:
+          greenTeamStart = new Waypoint(11, 11);
+          break;
+        case 4:
+          greenTeamStart = new Waypoint(1, 11);
+          break;
+      }
+      
+      // TODO: add variables and flags to determine the sequence of states the controller must go through.
+      
+    } catch (Exception e) {
+      System.err.println("Error: " + e.getMessage());
+    }
   }
 }
