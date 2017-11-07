@@ -17,7 +17,6 @@ public class Localizer {
   private LightLocalizer ll;
   private Driver dr;
 
-  private boolean localizing = false; // Used to block the thread.
   private boolean skip_ultrasonic = false; // Tells whether or not to skip the ultrasonic localization.
   private boolean done = false; // Tells whether or not we are done localizing.
   
@@ -89,6 +88,7 @@ public class Localizer {
    * @return new state.
    */
   private Loc_State process_idle() {
+    done = false;
     return Loc_State.NOT_LOCALIZED;
   }
 
@@ -99,7 +99,9 @@ public class Localizer {
    */
   private Loc_State process_notLocalized() {
 //    dr.rotate(360, true, true); // Start rotating
-
+    if (!ref_pos.equals(FinalProject.DEBUG_START_POS)) {
+      skip_ultrasonic = true;
+    }
     // Fancy ternary nonsense!
     return skip_ultrasonic ? Loc_State.LIGHT : Loc_State.ULTRASONIC;
   }
@@ -130,7 +132,6 @@ public class Localizer {
    * @return new state.
    */
   private Loc_State process_done() {
-    localizing = false;
     done = true;
     
     // reset

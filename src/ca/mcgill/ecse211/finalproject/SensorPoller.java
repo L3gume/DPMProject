@@ -84,8 +84,8 @@ public class SensorPoller extends Thread {
       } else {
         ultrasonicZero = true;
       }
-
       // This code basically bricks the sensors. pls fix
+
 //      if (lightZero && ultrasonicZero) {
 //        // Sleep indefinitely until this thread is interrupted, signaling that sensor
 //        // data may, once again, be needed.

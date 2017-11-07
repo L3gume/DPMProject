@@ -19,8 +19,6 @@ public class MainController extends Thread {
     IDLE, LOCALIZING, NAVIGATING, ZIPLINING, SEARCHING
   }
 
-  ;
-
   // --------------------------------------------------------------------------------
   // Game data
   // --------------------------------------------------------------------------------
@@ -216,7 +214,6 @@ public class MainController extends Thread {
         }
         return State.NAVIGATING;
       }
-
     } else {
       // Not done yet.
       return State.LOCALIZING;
@@ -276,9 +273,6 @@ public class MainController extends Thread {
     } else {
       return State.ZIPLINING;
     }
-
-    // This is going to be a fallthrough.
-    // return State.IDLE;
   }
 
   /**
@@ -421,5 +415,9 @@ public class MainController extends Thread {
     } catch (Exception e) {
       System.err.println("Error: " + e.getMessage());
     }
+  }
+  
+  public String getCurState() {
+    return cur_state.toString();
   }
 }

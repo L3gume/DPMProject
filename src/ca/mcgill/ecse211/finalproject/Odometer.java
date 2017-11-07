@@ -53,7 +53,7 @@ public class Odometer extends Thread {
       setRightMotorTachoCount(rightMotor.getTachoCount());
 
       double d_l = computeDisplacement(WHEEL_RAD, phi_l);
-      double d_r = computeDisplacement(WHEEL_RAD, phi_r);
+      double d_r = computeDisplacement(WHEEL_RAD, ((double)phi_r / FinalProject.RIGHT_WHEEL_MULT));
 
       // new theta
       double delta_theta = ((d_r - d_l) / WHEELBASE);

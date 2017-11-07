@@ -16,6 +16,7 @@ public class Display extends Thread {
 	private Odometer odo;
 	private SensorData sd;
 	private SensorPoller sp;
+	private MainController mc;
 	private TextLCD t;
 	
 	
@@ -38,7 +39,7 @@ public class Display extends Thread {
 	public Display(final TextLCD t, Odometer odo, MainController mc, SensorData sd, SensorPoller sp) {
 		this.t = t;
 		this.odo = odo;
-		//this.mc = mc;
+		this.mc = mc;
 		this.sd = sd;
 		this.sp = sp;
 	}
@@ -72,6 +73,7 @@ public class Display extends Thread {
 			t.drawString("dist: " + sd.getUSDataLatest(), 0, 4);
 			t.drawString("ll: " + sd.getLLDataLatest(1), 0, 5);
 			t.drawString("lr: " + sd.getLLDataLatest(2), 0, 6);
+			t.drawString("State: " + mc.getCurState(), 0, 7);
 //			t.drawString("distance: " + ul.getDist(), 0, 4);
 //			t.drawString("Light Level: " + cp.lightl, 0, 5);
 //			t.drawString("State: " + cont.getCurrentState(), 0, 6); // Display the current state of the controller
