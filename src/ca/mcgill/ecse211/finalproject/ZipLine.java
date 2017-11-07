@@ -102,7 +102,7 @@ public class ZipLine {
    */
   private Zip_State process_aligning() {
 	// check the error between our current heading and the zipline start point
-    double err_theta = angleToPos(odometer, FinalProject.ZIPLINE_START_POS);	// TODO this value is passed in over WiFi, might be a different variable
+    double err_theta = angleToPos(odometer, MainController.ZC_G);	// TODO this value is passed in over WiFi, might be a different variable
     
     if (Math.abs(err_theta) > FinalProject.ZIPLINE_ORIENTATION_THRESHOLD) {
     	driver.rotate(err_theta, false);	// rotate to new vector and wait until finished rotating
