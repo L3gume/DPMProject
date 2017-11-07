@@ -24,7 +24,7 @@ public class FinalProject {
 
   // Wifi constants.
   public static final String SERVER_IP = "192.168.43.173"; // CHANGE THIS TO YOUR COMPUTER'S IP
-  public static final int TEAM_NB = 1;
+  public static final int TEAM_NB = 6;
   public static final boolean ENABLE_WIFI_DEBUG = false;
   
   // Board-related constants
