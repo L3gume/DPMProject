@@ -88,7 +88,7 @@ public class ZipLine {
    */
   private Zip_State process_idle() {
     // no need to suspend the odometer - we'll re-localize after crossing
-    done = false;
+    //done = false;
     if (!done) {
       sd.incrementLLRefs();
       return Zip_State.ALIGNING;   // haven't crossed yet => go to alignment
@@ -153,7 +153,7 @@ public class ZipLine {
 	      } else {
 	        Sound.beepSequenceUp();
 	        // we've arrived at the end of the zipline, and the wheels should be touching the ground
-	        driver.moveForward(FinalProject.BOARD_TILE_LENGTH, false); 	// move away from the zipline
+	        driver.moveForward(FinalProject.BOARD_TILE_LENGTH * 1.2, false); 	// move away from the zipline
 	        driver.stopBoth(); 													// stop the main motors
 	        return Zip_State.DONE;
 	      }
@@ -172,6 +172,7 @@ public class ZipLine {
     done = true;
     floor_filter = 0;			// reset the floor filter in case we need to do this again
     sd.decrementLLRefs();
+    driver.stopTopMotor();
     return Zip_State.IDLE;
   }
 

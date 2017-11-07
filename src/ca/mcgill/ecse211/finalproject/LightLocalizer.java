@@ -63,7 +63,7 @@ public class LightLocalizer {
         ang = Math.toRadians(360) + ang;
       }
       dr.rotate(Math.toDegrees(ang), false); // align to 45
-      dr.moveBackward(7, false);
+      dr.moveBackward(10, false);
     }
     //ref_angle = getReferenceAngle();
     

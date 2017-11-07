@@ -32,16 +32,18 @@ public class FinalProject {
   // Driver-related constants
   public static final int SPEED_FWD = 175;
   public static final int SPEED_ROT = 100;
+  public static final float RIGHT_WHEEL_MULT = 1.003f;
 
   // Localization-related constants
   public static final int RISING_EDGE_THRESHOLD = 50;
   public static final int FALLING_EDGE_THRESHOLD = 70;
   public static final float LIGHT_LEVEL_THRESHOLD = 0.30f;
-  public static final double LIGHT_SENSOR_OFFSET = 2.2;
+  public static final double LIGHT_SENSOR_OFFSET = 2.23;
   public static final long MOVE_TIME_THRESHOLD = 4000; // milliseconds
-  public static final Waypoint DEBUG_REF_POS = new Waypoint(1, 3);
+  public static final Waypoint DEBUG_REF_POS = new Waypoint(1, 6);
   public static final Waypoint DEBUG_START_POS = new Waypoint(1, 1);
-  public static final Waypoint DEBUG_ZIP_POS = new Waypoint(2, 3);
+  public static final Waypoint DEBUG_ZIP_POS = new Waypoint(2, 6);
+  public static final Waypoint DEUBG_ZIP_END = new Waypoint(7, 6);
   
   // Poller-related constants
   public static final long SLEEP_TIME = 20;
@@ -155,6 +157,7 @@ public class FinalProject {
 
     Button.waitForAnyPress();
     cont.start();
+    
     // Wheel base test
     //dr.rotate(90, false);
     while (Button.waitForAnyPress() != Button.ID_ESCAPE);

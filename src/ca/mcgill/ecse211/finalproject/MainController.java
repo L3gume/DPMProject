@@ -17,8 +17,6 @@ public class MainController extends Thread {
     IDLE, LOCALIZING, NAVIGATING, ZIPLINING, SEARCHING
   }
 
-  ;
-
   // --------------------------------------------------------------------------------
   // Constants
   // --------------------------------------------------------------------------------
@@ -39,6 +37,7 @@ public class MainController extends Thread {
   private String sub_state = null; // D_State of the currently executing subsystem
   
   private boolean at_zip = false;
+  private boolean crossed_zip = false;
   
   /**
    * Constructor
@@ -147,8 +146,10 @@ public class MainController extends Thread {
     if (loc.isDone()) {
       if (Localizer.getRefPos().equals(FinalProject.DEBUG_START_POS)) {
         nav.setPath(new Waypoint[] {FinalProject.DEBUG_START_POS, FinalProject.DEBUG_REF_POS});
-      } else if (at_zip || Localizer.getRefPos().equals(FinalProject.DEBUG_REF_POS)) {
+      } else if (!crossed_zip && (at_zip || Localizer.getRefPos().equals(FinalProject.DEBUG_REF_POS))) {
         nav.setPath(new Waypoint[] {FinalProject.DEBUG_REF_POS}); 
+      } else if (crossed_zip && Localizer.getRefPos().equals(FinalProject.DEUBG_ZIP_END)) {       
+        nav.setPath(new Waypoint[] {new Waypoint(7, 6), new Waypoint(7, 1), new Waypoint(1, 1)});
       }
       return State.NAVIGATING;
     } else {
@@ -173,7 +174,10 @@ public class MainController extends Thread {
         at_zip = true;
         return State.LOCALIZING;
       } else if (at_zip) {
+        at_zip = false;
         return State.ZIPLINING;
+      } else if (crossed_zip) {
+        Button.waitForAnyPress();
       }
       return State.IDLE;
     } else {
@@ -194,13 +198,15 @@ public class MainController extends Thread {
 
     if (zip.isDone()) {
       // Check for various conditions
-      Button.waitForAnyPress();
+      loc.setRefPos(FinalProject.DEUBG_ZIP_END);
+      crossed_zip = true;
+      return State.LOCALIZING;
     } else {
       return State.ZIPLINING;
     }
 
     // This is going to be a fallthrough.
-    return State.IDLE;
+    //return State.IDLE;
   }
 
   /**
