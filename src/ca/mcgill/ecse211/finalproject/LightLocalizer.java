@@ -50,21 +50,28 @@ public class LightLocalizer {
     boolean right_stopped = false;
     boolean turned = false;
     boolean forward = true;
-    double ref_angle = 0;
-
+   
     long started_moving_t = 0;
 
     sd.incrementLLRefs(); // increment the references to the light poller to make the sensorData
                           // start gathering data.
     sleepThread(1); // wait to make sure the sensorData class has time to get some data.
     ref_pos = Localizer.getRefPos(); // Get the reference position from the Localizer class.
-    ref_angle = getReferenceAngle();
-    
-    double align_ang = Math.toRadians(ref_angle) - odo.getTheta();
-    if (align_ang > Math.toRadians(180)) {
-      align_ang = align_ang - Math.toRadians(360);
+    if (ref_pos != FinalProject.DEBUG_START_POS) {
+      double ang = Math.toRadians(45) - odo.getTheta();
+      if (ang < -Math.toRadians(180)) {
+        ang = Math.toRadians(360) + ang;
+      }
+      dr.rotate(Math.toDegrees(ang), false); // align to 45
+      dr.moveBackward(7, false);
     }
-    dr.rotate(Math.toDegrees(align_ang), false); // align to ref_angle
+    //ref_angle = getReferenceAngle();
+    
+    double align_ang = -odo.getTheta();
+    if (align_ang < -Math.toRadians(180)) {
+      align_ang = Math.toRadians(360) + align_ang;
+    }
+    dr.rotate(Math.toDegrees(align_ang), false); // align to 0
 
     dr.setSpeedLeftMotor(FinalProject.SPEED_FWD / 2);
     dr.setSpeedRightMotor(FinalProject.SPEED_FWD / 2);
@@ -127,21 +134,7 @@ public class LightLocalizer {
        */
       if ((!found_y || !found_x)
           && System.currentTimeMillis() - started_moving_t > FinalProject.MOVE_TIME_THRESHOLD) {
-        if (!left_stopped && !right_stopped) {
-          if (forward) {
-            dr.setSpeedLeftMotor(150);
-            dr.setSpeedRightMotor(150);
-            dr.endlessMoveBackward();
-            started_moving_t = System.currentTimeMillis();
-            forward = false;
-          } else {
-            dr.setSpeedLeftMotor(150);
-            dr.setSpeedRightMotor(150);
-            dr.endlessMoveForward();
-            started_moving_t = System.currentTimeMillis();
-            forward = true;
-          }
-        } else if (left_stopped && !right_stopped) {
+        if (left_stopped && !right_stopped) {
           if (forward) {
             dr.setSpeedRightMotor(100);
             dr.rightMotorBackward();
@@ -153,15 +146,33 @@ public class LightLocalizer {
             started_moving_t = System.currentTimeMillis();
             forward = true;
           }
-        } else if (!left_stopped && right_stopped) {
+        }
+        
+        if (!left_stopped && right_stopped) {
           if (forward) {
-            dr.setSpeedLeftMotor(100);
+            dr.setSpeedLeftMotor(125);
             dr.leftMotorBackward();
             started_moving_t = System.currentTimeMillis();
             forward = false;
           } else {
             dr.setSpeedLeftMotor(100);
             dr.leftMotorForward();
+            started_moving_t = System.currentTimeMillis();
+            forward = true;
+          }
+        }
+        
+        if (!left_stopped && !right_stopped) {
+          if (forward) {
+            dr.setSpeedLeftMotor(150);
+            dr.setSpeedRightMotor(150);
+            dr.endlessMoveBackward();
+            started_moving_t = System.currentTimeMillis();
+            forward = false;
+          } else {
+            dr.setSpeedLeftMotor(150);
+            dr.setSpeedRightMotor(150);
+            dr.endlessMoveForward();
             started_moving_t = System.currentTimeMillis();
             forward = true;
           }

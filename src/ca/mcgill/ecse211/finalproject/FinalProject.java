@@ -37,18 +37,19 @@ public class FinalProject {
   public static final int RISING_EDGE_THRESHOLD = 50;
   public static final int FALLING_EDGE_THRESHOLD = 70;
   public static final float LIGHT_LEVEL_THRESHOLD = 0.30f;
-  public static final double LIGHT_SENSOR_OFFSET = 1.8;
+  public static final double LIGHT_SENSOR_OFFSET = 2.2;
   public static final long MOVE_TIME_THRESHOLD = 4000; // milliseconds
-  public static final Waypoint DEBUG_REF_POS = new Waypoint(2, 2);
+  public static final Waypoint DEBUG_REF_POS = new Waypoint(1, 3);
   public static final Waypoint DEBUG_START_POS = new Waypoint(1, 1);
+  public static final Waypoint DEBUG_ZIP_POS = new Waypoint(2, 3);
   
   // Poller-related constants
   public static final long SLEEP_TIME = 20;
   
   // Zipline-related constants
   public static final double ZIPLINE_ORIENTATION = 0.0;						// TODO this will be determined by values inputted over WiFi
-  public static final Waypoint ZIPLINE_START_POS = new Waypoint(0.0, 0.0);	// TODO this will be determined by values inputted over WiFi
-  public static final double ZIPLINE_ORIENTATION_THRESHOLD = Math.toRadians(2); 
+  public static final Waypoint ZIPLINE_START_POS = new Waypoint(2, 3);	// TODO this will be determined by values inputted over WiFi
+  public static final double ZIPLINE_ORIENTATION_THRESHOLD = Math.toRadians(1); 
   public static final float ZIPLINE_TRAVERSAL_SPEED = 150.f;
   public static final double FLOOR_LIGHT_READING = 0.1;		// TODO: calibrate this
   public static final double FLOOR_READING_FILTER = 20;
@@ -124,9 +125,9 @@ public class FinalProject {
         new Driver(FinalProject.leftMotor, FinalProject.rightMotor, FinalProject.zipMotor, null);
     UltrasonicLocalizer ul = new UltrasonicLocalizer(dr, odometer, sd);
     LightLocalizer ll = new LightLocalizer(dr, odometer, sd);
-    Localizer loc = new Localizer(ul, ll, dr);
-    Display disp = new Display(LocalEV3.get().getTextLCD(), odometer, null, sd, sensorPoller);
+    Localizer loc = new Localizer(ul, ll, dr);   
     Navigator nav = new Navigator(dr, odometer, sd);
+    ZipLine zip = new ZipLine(zipMotor,odometer, dr, sd);
 
     //
     // TODO:
@@ -141,7 +142,8 @@ public class FinalProject {
     //
 
     // Create MainController object.
-    MainController cont = new MainController(loc, ul, ll, nav, null, null);
+    MainController cont = new MainController(loc, ul, ll, nav, zip, null);
+    Display disp = new Display(LocalEV3.get().getTextLCD(), odometer, cont, sd, sensorPoller);
 
     dr.setSpeedLeftMotor(SPEED_ROT);
     dr.setSpeedRightMotor(SPEED_ROT);
@@ -151,6 +153,7 @@ public class FinalProject {
     odometer.start();
     disp.start();
 
+    Button.waitForAnyPress();
     cont.start();
     // Wheel base test
     //dr.rotate(90, false);

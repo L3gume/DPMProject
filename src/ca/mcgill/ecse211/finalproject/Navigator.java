@@ -100,8 +100,8 @@ public class Navigator {
                                     // case.
     if (target_pos != null) { // Compute the distance and angle to the target position, if rotation is needed, set state to
       // rotating, if not: move.
-      updateTargetInfo();
       done = false;
+      updateTargetInfo();
       if (Math.abs(angle_to_target_pos) > 0) {
         return Nav_State.ROTATING;
       } else if (dist_to_target_pos > 0) {
@@ -109,7 +109,7 @@ public class Navigator {
       }
 
       // Fallthrough, shouldn't happen.
-      return Nav_State.IDLE;
+      //return Nav_State.IDLE;
     }
     // no more target position = done
     return done ? Nav_State.IDLE : Nav_State.DONE;
@@ -160,7 +160,7 @@ public class Navigator {
       }
     } else {
       // We missed the point (dist_to_target_pos > min_dist), turn around and get there!
-      if (dist_to_target_pos < 10) {
+      if (dist_to_target_pos < 5) {
         driver.moveBackward(dist_to_target_pos, false);
       }
       return Nav_State.ROTATING;

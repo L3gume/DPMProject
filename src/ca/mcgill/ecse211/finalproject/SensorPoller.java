@@ -70,8 +70,8 @@ public class SensorPoller extends Thread {
       if (this.sd.getLLRefs() > 0) {
         this.lSensorLeft.fetchSample(this.lDataLeft, 0);
         this.sd.lightLevelHandler(this.lDataLeft[0], 1);
-        this.lSensorRight.fetchSample(this.lDataLeft, 0);
-        this.sd.lightLevelHandler(this.lDataRight[0], 1);
+        this.lSensorRight.fetchSample(this.lDataRight, 0);
+        this.sd.lightLevelHandler(this.lDataRight[0], 2);
         lightZero = false;
       } else {
         lightZero = true;
@@ -85,17 +85,17 @@ public class SensorPoller extends Thread {
         ultrasonicZero = true;
       }
 
-      if (lightZero && ultrasonicZero) {
-        // Sleep indefinitely until this thread is interrupted, signaling that sensor
-        // data may, once again, be needed.
-        try {
-          Thread.sleep(Long.MAX_VALUE);
-        } catch (Exception e) {
-          // ...
-        }
-
-        continue;
-      }
+//      if (lightZero && ultrasonicZero) {
+//        // Sleep indefinitely until this thread is interrupted, signaling that sensor
+//        // data may, once again, be needed.
+//        try {
+//          Thread.sleep(Long.MAX_VALUE);
+//        } catch (Exception e) {
+//          // ...
+//        }
+//
+//        continue;
+//      }
 
       // Sleep for a bit.
       try {

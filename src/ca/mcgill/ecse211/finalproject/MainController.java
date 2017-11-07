@@ -37,7 +37,9 @@ public class MainController extends Thread {
 
   private State cur_state = State.IDLE; // Current state of the controller
   private String sub_state = null; // D_State of the currently executing subsystem
-
+  
+  private boolean at_zip = false;
+  
   /**
    * Constructor
    *
@@ -130,6 +132,7 @@ public class MainController extends Thread {
    */
   private State process_idle() {
     // TODO: Integrate the wifi class to determine the robot's goal.
+    loc.setRefPos(FinalProject.DEBUG_START_POS);
     return State.LOCALIZING;
   }
 
@@ -142,7 +145,12 @@ public class MainController extends Thread {
     sub_state = loc.process(); // the localizer handles controlling both the ultrasonic and light localizers.
 
     if (loc.isDone()) {
-      return State.IDLE;
+      if (Localizer.getRefPos().equals(FinalProject.DEBUG_START_POS)) {
+        nav.setPath(new Waypoint[] {FinalProject.DEBUG_START_POS, FinalProject.DEBUG_REF_POS});
+      } else if (at_zip || Localizer.getRefPos().equals(FinalProject.DEBUG_REF_POS)) {
+        nav.setPath(new Waypoint[] {FinalProject.DEBUG_REF_POS}); 
+      }
+      return State.NAVIGATING;
     } else {
       return State.LOCALIZING;
     }
@@ -160,6 +168,13 @@ public class MainController extends Thread {
     sub_state = nav.process();
 
     if (nav.isDone()) {
+      if (!at_zip) {
+        loc.setRefPos(FinalProject.DEBUG_REF_POS);
+        at_zip = true;
+        return State.LOCALIZING;
+      } else if (at_zip) {
+        return State.ZIPLINING;
+      }
       return State.IDLE;
     } else {
       return State.NAVIGATING;
@@ -179,6 +194,7 @@ public class MainController extends Thread {
 
     if (zip.isDone()) {
       // Check for various conditions
+      Button.waitForAnyPress();
     } else {
       return State.ZIPLINING;
     }
@@ -212,5 +228,9 @@ public class MainController extends Thread {
    */
   private void getGameData() {
     // TODO
+  }
+  
+  public String getCurState() {
+    return cur_state.toString();
   }
 }
