@@ -159,7 +159,6 @@ public class FinalProject {
     odometer.start();
     disp.start();
 
-    Button.waitForAnyPress();
     cont.start();
     
     // Wheel base test

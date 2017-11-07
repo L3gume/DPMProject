@@ -210,7 +210,8 @@ public class MainController extends Thread {
           // That means we are basically done.
           nav.setPath(new Waypoint[] {new Waypoint(ZO_R.x, redTeamStart.y), redTeamStart}); // probably needs more waypoints (or different.
         } else {
-          nav.setPath(new Waypoint[] {SG_UR}); // Move to the search zone
+//          System.out.println("[MAINCONTROLLER] Move to SR_UR");
+          nav.setPath(new Waypoint[] {new Waypoint(ZO_R.x, SR_UR.y), SR_UR}); // Move to the search zone
         }
         return State.NAVIGATING;
       }
@@ -305,6 +306,7 @@ public class MainController extends Thread {
     try {
       @SuppressWarnings("rawtypes")
       Map data = conn.getData();
+      assert (data != null);
 
       RedTeam = ((Long) data.get("RedTeam")).intValue();
       GreenTeam = ((Long) data.get("GreenTeam")).intValue();
@@ -347,9 +349,11 @@ public class MainController extends Thread {
 
       if (RedTeam == FinalProject.TEAM_NB) {
         is_red = true;
+//        System.out.println("[GAMEDATA] Red team");
         // river first
       } else if (GreenTeam == FinalProject.TEAM_NB) {
         is_red = false;
+//        System.out.println("[GAMEDATA] Green team");
         // zipline first
       }
 
@@ -366,54 +370,57 @@ public class MainController extends Thread {
         riverPath = new Waypoint[] {new Waypoint(SV_UR.x - 0.5, SV_UR.y),
             new Waypoint(SV_LL.x + 0.5, SV_LL.y + 0.5), new Waypoint(SH_UR.x, SH_UR.y - 0.5)};
       } else {
-        System.out.println("[RIVER] error finding the river's start: \n" + "Redzone: LL ["
-            + Red_LL.x + " ; " + Red_LL.y + "]\n" + "Redzone: UR [" + Red_UR.x + " ; " + Red_UR.y
-            + "]\n" + "River_h: LL [" + SH_LL.x + " ; " + SH_LL.y + "]\n" + "River_h: UR ["
-            + SH_UR.x + " ; " + SH_UR.y + "]\n" + "River_v: LL [" + SV_LL.x + " ; " + SV_LL.y
-            + "]\n" + "River_v: UR [" + SV_UR.x + " ; " + SV_UR.y + "]\n");
+//        System.out.println("[RIVER] error finding the river's start: \n" + "Redzone: LL ["
+//            + Red_LL.x + " ; " + Red_LL.y + "]\n" + "Redzone: UR [" + Red_UR.x + " ; " + Red_UR.y
+//            + "]\n" + "River_h: LL [" + SH_LL.x + " ; " + SH_LL.y + "]\n" + "River_h: UR ["
+//            + SH_UR.x + " ; " + SH_UR.y + "]\n" + "River_v: LL [" + SV_LL.x + " ; " + SV_LL.y
+//            + "]\n" + "River_v: UR [" + SV_UR.x + " ; " + SV_UR.y + "]\n");
       }
       
-      /*
-       * Generate path to get to zip line. TODO: test this.
-       * Might need to account for search zone potentially in the way. (or avoid it)
-       */
-      zipPath = new Waypoint[] {new Waypoint(greenTeamStart.y, ZO_G.x), ZO_G};
-
       switch (RedCorner) {
         case 0:
           redTeamStart = new Waypoint(1, 1);
           break;
         case 1:
-          redTeamStart = new Waypoint(11, 1);
+          redTeamStart = new Waypoint(7, 1);
           break;
         case 2:
-          redTeamStart = new Waypoint(11, 11);
+          redTeamStart = new Waypoint(7, 7);
           break;
         case 3:
-          redTeamStart = new Waypoint(1, 11);
+          redTeamStart = new Waypoint(1, 7);
           break;
       }
+      
 
       switch (GreenCorner) {
         case 0:
           greenTeamStart = new Waypoint(1, 1);
           break;
         case 1:
-          greenTeamStart = new Waypoint(11, 1);
+          greenTeamStart = new Waypoint(7, 1);
           break;
         case 2:
-          greenTeamStart = new Waypoint(11, 11);
+          greenTeamStart = new Waypoint(7, 7);
           break;
         case 3:
-          greenTeamStart = new Waypoint(1, 11);
+          greenTeamStart = new Waypoint(1, 7);
           break;
       }
 
       // TODO: add variables and flags to determine the sequence of states the controller must go
       // through.
 
+      /*
+       * Generate path to get to zip line. TODO: test this.
+       * Might need to account for search zone potentially in the way. (or avoid it)
+       */
+      zipPath = new Waypoint[] {/*new Waypoint(greenTeamStart.y, ZO_G.x),*/ ZO_G};
+      
     } catch (Exception e) {
       System.err.println("Error: " + e.getMessage());
+      e.printStackTrace();
+      System.exit(1);
     }
   }
   
