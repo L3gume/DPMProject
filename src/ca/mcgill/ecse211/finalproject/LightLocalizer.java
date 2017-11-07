@@ -54,8 +54,10 @@ public class LightLocalizer {
 
     long started_moving_t = 0;
 
-    sd.incrementLLRefs(); // increment the references to the light poller to make the sensorData
-                          // start gathering data.
+    // increment the references to the light poller to make the sensorData start gathering data.
+    this.sd.incrementSensorRefs(SensorData.SensorID.LS_RIGHT);
+    this.sd.incrementSensorRefs(SensorData.SensorID.LS_LEFT);
+
     sleepThread(1); // wait to make sure the sensorData class has time to get some data.
     ref_pos = Localizer.getRefPos(); // Get the reference position from the Localizer class.
     ref_angle = getReferenceAngle();
@@ -72,12 +74,12 @@ public class LightLocalizer {
     started_moving_t = System.currentTimeMillis();
     while (!(found_y && found_x)) {
       if (!found_y) {
-        if (sd.getLLDataLatest(1) < FinalProject.LIGHT_LEVEL_THRESHOLD && !left_stopped) {
+        if (this.sd.getSensorDataLatest(SensorData.SensorID.LS_LEFT) < FinalProject.LIGHT_LEVEL_THRESHOLD && !left_stopped) {
           // Left sensor hit the line.
           dr.stopLeftWheel();
           left_stopped = true;
         }
-        if (sd.getLLDataLatest(2) < FinalProject.LIGHT_LEVEL_THRESHOLD && !right_stopped) {
+        if (this.sd.getSensorDataLatest(SensorData.SensorID.LS_RIGHT) < FinalProject.LIGHT_LEVEL_THRESHOLD && !right_stopped) {
           // Right sensor hit the line.
           dr.stopRightWheel();
           right_stopped = true;
@@ -100,12 +102,12 @@ public class LightLocalizer {
           dr.endlessMoveForward();
           started_moving_t = System.currentTimeMillis();
         }
-        if (sd.getLLDataLatest(1) < FinalProject.LIGHT_LEVEL_THRESHOLD && !left_stopped) {
+        if (this.sd.getSensorDataLatest(SensorData.SensorID.LS_LEFT) < FinalProject.LIGHT_LEVEL_THRESHOLD && !left_stopped) {
           // Left sensor hit the line.
           dr.stopLeftWheel();
           left_stopped = true;
         }
-        if (sd.getLLDataLatest(2) < FinalProject.LIGHT_LEVEL_THRESHOLD && !right_stopped) {
+        if (this.sd.getSensorDataLatest(SensorData.SensorID.LS_RIGHT) < FinalProject.LIGHT_LEVEL_THRESHOLD && !right_stopped) {
           dr.stopRightWheel();
           right_stopped = true;
         }
@@ -175,7 +177,9 @@ public class LightLocalizer {
 
     }
 
-    sd.decrementLLRefs();
+    this.sd.incrementSensorRefs(SensorData.SensorID.LS_RIGHT);
+    this.sd.incrementSensorRefs(SensorData.SensorID.LS_LEFT);
+
     Sound.beepSequenceUp();
   }
 

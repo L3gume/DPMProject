@@ -49,7 +49,8 @@ public class UltrasonicLocalizer {
    * Performs rising of falling edge localization depending on the distance read by the ultrasonic sensor.
    */
   public void localize() {
-    sd.incrementUSRefs();
+    this.sd.incrementSensorRefs(SensorData.SensorID.US_FRONT);
+
     ref_pos = Localizer.getRefPos();
     sleepThread(1);
     determineMode();
@@ -76,7 +77,7 @@ public class UltrasonicLocalizer {
     }
 
     computeOrientation();
-    sd.decrementUSRefs();
+    this.sd.decrementSensorRefs(SensorData.SensorID.US_FRONT);
   }
 
   /**
@@ -107,11 +108,11 @@ public class UltrasonicLocalizer {
   private void wait(Mode m) {
     Sound.setVolume(70);
     if (m == Mode.FALLING_EDGE) {
-      while (sd.getUSDataLatest() > FinalProject.FALLING_EDGE_THRESHOLD) ; // Wait until we capture a falling
+      while (this.sd.getSensorDataLatest(SensorData.SensorID.US_FRONT) > FinalProject.FALLING_EDGE_THRESHOLD) ; // Wait until we capture a falling
       // edge.
       Sound.beep();
     } else {
-      while (sd.getUSDataLatest() < FinalProject.RISING_EDGE_THRESHOLD) ; // Wait until we capture a rising edge.
+      while (this.sd.getSensorDataLatest(SensorData.SensorID.US_FRONT) < FinalProject.RISING_EDGE_THRESHOLD) ; // Wait until we capture a rising edge.
       Sound.beep();
     }
   }
@@ -130,7 +131,7 @@ public class UltrasonicLocalizer {
   }
 
   private void determineMode() {
-    if (sd.getUSDataLatest() > 50) {
+    if (this.sd.getSensorDataLatest(SensorData.SensorID.US_FRONT) > 50) {
       cur_mode = Mode.FALLING_EDGE;
     } else {
       cur_mode = Mode.RISING_EDGE;

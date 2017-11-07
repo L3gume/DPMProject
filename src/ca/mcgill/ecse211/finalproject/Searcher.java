@@ -69,29 +69,29 @@ public class Searcher {
   private S_State process_found() {
     signalCapture();
 
-    if (sd.getUSRefs() > 0) {
-      sd.decrementUSRefs();
+    if (this.sd.getSensorRefs(SensorData.SensorID.US_FRONT) > 0) {
+      this.sd.decrementSensorRefs(SensorData.SensorID.US_FRONT);
     }
-    if (sd.getLLRefs() > 0) {
-      sd.decrementLLRefs();
+    if (this.sd.getSensorRefs(SensorData.SensorID.LS_FRONT) > 0) {
+      this.sd.decrementSensorRefs(SensorData.SensorID.LS_FRONT);
     }
 
     return S_State.IDLE;
   }
 
   private void getSensorData() {
-    if (sd.getUSRefs() > 0) {
-      distance = sd.getUSDataLatest();
+    if (this.sd.getSensorRefs(SensorData.SensorID.US_FRONT) > 0) {
+      distance = this.sd.getSensorDataLatest(SensorData.SensorID.US_FRONT);
     } else {
       distance = 0;
-      sd.incrementUSRefs();
+      this.sd.incrementSensorRefs(SensorData.SensorID.US_FRONT);
     }
 
-    if (sd.getLLRefs() > 0) {
+    if (this.sd.getSensorRefs(SensorData.SensorID.LS_FRONT) > 0) {
       // TODO: need color id compatibility in SensorData
     } else {
       color_id = null;
-      sd.incrementLLRefs();
+      this.sd.incrementSensorRefs(SensorData.SensorID.LS_FRONT);
     }
   }
 
