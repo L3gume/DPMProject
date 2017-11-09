@@ -99,7 +99,7 @@ public class Localizer {
    */
   private Loc_State process_notLocalized() {
 //    dr.rotate(360, true, true); // Start rotating
-    if (!ref_pos.equals(MainController.greenTeamStart)) {
+    if (!ref_pos.equals(MainController.is_red ? MainController.redTeamStart : MainController.greenTeamStart)) {
       skip_ultrasonic = true;
     }
     // Fancy ternary nonsense!

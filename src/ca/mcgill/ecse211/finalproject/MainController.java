@@ -50,8 +50,8 @@ public class MainController extends Thread {
   static Waypoint SG_LL; // lower left corner of green search zone.
   static Waypoint SG_UR; // upper right corner of green search zone.
 
-  static Waypoint[] riverPath;
-  static Waypoint[] zipPath;
+  static Waypoint[] riverPath; // Path from the red zone to the green zone through the river.
+  static Waypoint[] zipPath; // Path from the green starting corner to the zip line.
 
 
   // --------------------------------------------------------------------------------
@@ -198,20 +198,26 @@ public class MainController extends Thread {
         }
         return State.NAVIGATING;
       }
-      
+
       if (initial_loc_done && !zipline_loc_done && !is_red) {
         zipline_loc_done = true;
         nav.setPath(new Waypoint[] {ZO_G});
         return State.NAVIGATING;
       }
-      
+
       if (traversed_zipline) {
         if (is_red) {
           // That means we are basically done.
-          nav.setPath(new Waypoint[] {new Waypoint(ZO_R.x, redTeamStart.y), redTeamStart}); // probably needs more waypoints (or different.
+          nav.setPath(new Waypoint[] {new Waypoint(ZO_R.x, redTeamStart.y), redTeamStart}); // probably
+                                                                                            // needs
+                                                                                            // more
+                                                                                            // waypoints
+                                                                                            // (or
+                                                                                            // different.
         } else {
-//          System.out.println("[MAINCONTROLLER] Move to SR_UR");
-          nav.setPath(new Waypoint[] {new Waypoint(ZO_R.x, SR_UR.y), SR_UR}); // Move to the search zone
+          // System.out.println("[MAINCONTROLLER] Move to SR_UR");
+          nav.setPath(new Waypoint[] {new Waypoint(ZO_R.x, SR_UR.y), SR_UR}); // Move to the search
+                                                                              // zone
         }
         return State.NAVIGATING;
       }
@@ -235,7 +241,8 @@ public class MainController extends Thread {
     if (nav.isDone()) {
       if (is_red) {
         if (initial_loc_done) {
-        // The river was crossed, move to searching
+          // The river was crossed, move to searching
+          Button.waitForAnyPress();
           return State.SEARCHING;
         }
       } else {
@@ -349,34 +356,44 @@ public class MainController extends Thread {
 
       if (RedTeam == FinalProject.TEAM_NB) {
         is_red = true;
-//        System.out.println("[GAMEDATA] Red team");
+        // System.out.println("[GAMEDATA] Red team");
         // river first
       } else if (GreenTeam == FinalProject.TEAM_NB) {
         is_red = false;
-//        System.out.println("[GAMEDATA] Green team");
+        // System.out.println("[GAMEDATA] Green team");
         // zipline first
       }
 
       /*
-       * Generate the river path. - TODO: test this.
-       * Might need to account for search zone potentially in the way. (or avoid it)
+       * Generate the river path. - TODO: ADD MORE OPTIONS IN CASE YOU HAVE TO GO UP OR DOWN. Might
+       * need to account for search zone potentially in the way. (or avoid it)
        */
       if (SH_LL.x == Red_UR.x) {
         // River starts with the horizontal segment and is to the right of the red zone
-        riverPath = new Waypoint[] {new Waypoint(SH_LL.x, SH_LL.y + 0.5),
-            new Waypoint(SH_UR.x - 0.5, SH_UR.y - 0.5), new Waypoint(SV_LL.x + 0.5, SV_LL.y)};
+        if (SV_LL.y == SH_LL.y) {
+          riverPath = new Waypoint[] {new Waypoint(SH_LL.x, SH_LL.y + 0.5),
+              new Waypoint(SH_UR.x - 0.5, SH_UR.y - 0.5), new Waypoint(SV_UR.x - 0.5, SV_UR.y)};
+        } else {
+          riverPath = new Waypoint[] {new Waypoint(SH_LL.x, SH_LL.y + 0.5),
+              new Waypoint(SH_UR.x - 0.5, SH_UR.y - 0.5), new Waypoint(SV_LL.x - 0.5, SV_LL.y)};
+        }
       } else if (SV_UR.y == Red_LL.y) {
         // River starts with the vertical segment and is under the red zone
-        riverPath = new Waypoint[] {new Waypoint(SV_UR.x - 0.5, SV_UR.y),
-            new Waypoint(SV_LL.x + 0.5, SV_LL.y + 0.5), new Waypoint(SH_UR.x, SH_UR.y - 0.5)};
+        if (SV_LL.x == SH_LL.x) {
+          riverPath = new Waypoint[] {new Waypoint(SV_UR.x - 0.5, SV_UR.y),
+              new Waypoint(SV_LL.x + 0.5, SV_LL.y + 0.5), new Waypoint(SH_UR.x, SH_UR.y - 0.5)};
+        } else {
+          riverPath = new Waypoint[] {new Waypoint(SV_UR.x - 0.5, SV_UR.y),
+              new Waypoint(SV_LL.x + 0.5, SV_LL.y + 0.5), new Waypoint(SH_LL.x, SH_LL.y + 0.5)};
+        }
       } else {
-//        System.out.println("[RIVER] error finding the river's start: \n" + "Redzone: LL ["
-//            + Red_LL.x + " ; " + Red_LL.y + "]\n" + "Redzone: UR [" + Red_UR.x + " ; " + Red_UR.y
-//            + "]\n" + "River_h: LL [" + SH_LL.x + " ; " + SH_LL.y + "]\n" + "River_h: UR ["
-//            + SH_UR.x + " ; " + SH_UR.y + "]\n" + "River_v: LL [" + SV_LL.x + " ; " + SV_LL.y
-//            + "]\n" + "River_v: UR [" + SV_UR.x + " ; " + SV_UR.y + "]\n");
+        // System.out.println("[RIVER] error finding the river's start: \n" + "Redzone: LL ["
+        // + Red_LL.x + " ; " + Red_LL.y + "]\n" + "Redzone: UR [" + Red_UR.x + " ; " + Red_UR.y
+        // + "]\n" + "River_h: LL [" + SH_LL.x + " ; " + SH_LL.y + "]\n" + "River_h: UR ["
+        // + SH_UR.x + " ; " + SH_UR.y + "]\n" + "River_v: LL [" + SV_LL.x + " ; " + SV_LL.y
+        // + "]\n" + "River_v: UR [" + SV_UR.x + " ; " + SV_UR.y + "]\n");
       }
-      
+
       switch (RedCorner) {
         case 0:
           redTeamStart = new Waypoint(1, 1);
@@ -391,7 +408,7 @@ public class MainController extends Thread {
           redTeamStart = new Waypoint(1, 7);
           break;
       }
-      
+
 
       switch (GreenCorner) {
         case 0:
@@ -412,18 +429,18 @@ public class MainController extends Thread {
       // through.
 
       /*
-       * Generate path to get to zip line. TODO: test this.
-       * Might need to account for search zone potentially in the way. (or avoid it)
+       * Generate path to get to zip line. TODO: test this. Might need to account for search zone
+       * potentially in the way. (or avoid it)
        */
-      zipPath = new Waypoint[] {/*new Waypoint(greenTeamStart.y, ZO_G.x),*/ ZO_G};
-      
+      zipPath = new Waypoint[] {/* new Waypoint(greenTeamStart.y, ZO_G.x), */ ZO_G};
+
     } catch (Exception e) {
       System.err.println("Error: " + e.getMessage());
       e.printStackTrace();
       System.exit(1);
     }
   }
-  
+
   public String getCurState() {
     return cur_state.toString();
   }

@@ -41,7 +41,7 @@ public class FinalProject {
 
   // Localization-related constants
   public static final int RISING_EDGE_THRESHOLD = 50;
-  public static final int FALLING_EDGE_THRESHOLD = 70;
+  public static final int FALLING_EDGE_THRESHOLD = 50;
   public static final float LIGHT_LEVEL_THRESHOLD = 0.30f;
   public static final double LIGHT_SENSOR_OFFSET = 2.23;
   public static final long MOVE_TIME_THRESHOLD = 4000; // milliseconds
@@ -62,8 +62,8 @@ public class FinalProject {
   public static final double FLOOR_READING_FILTER = 20;
   
   // Navigation-related constants
-  public static final double ANGLE_THRESHOLD = Math.toRadians(2);
-  public static final double DISTANCE_THRESHOLD = 2;
+  public static final double ANGLE_THRESHOLD = Math.toRadians(1);
+  public static final double DISTANCE_THRESHOLD = 1;
 
 
   // --------------------------------------------------------------------------------
