@@ -126,9 +126,9 @@ class Sensor {
     }
 
     // Update the latest sensor data derivative value.
-    synchronized (this.dataDerivLock) {
-      this.dataDeriv[index] = val - this.data[index - 1];
-    }
+//    synchronized (this.dataDerivLock) {
+//      this.dataDeriv[index] = val - this.data[index - 1];
+//    }
 
     index += 1;
     index %= n;
