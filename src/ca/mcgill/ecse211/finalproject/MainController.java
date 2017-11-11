@@ -188,6 +188,7 @@ public class MainController extends Thread {
                                // localizers.
 
     if (loc.isDone()) {
+      Button.waitForAnyPress();
       if (!initial_loc_done) {
         initial_loc_done = true;
         // Set a path depending on our current team.
@@ -200,6 +201,7 @@ public class MainController extends Thread {
       }
 
       if (initial_loc_done && !zipline_loc_done && !is_red) {
+        Button.waitForAnyPress();
         zipline_loc_done = true;
         nav.setPath(new Waypoint[] {ZO_G});
         return State.NAVIGATING;
@@ -239,6 +241,7 @@ public class MainController extends Thread {
     sub_state = nav.process();
 
     if (nav.isDone()) {
+      Button.waitForAnyPress();
       if (is_red) {
         if (initial_loc_done) {
           // The river was crossed, move to searching
@@ -253,6 +256,7 @@ public class MainController extends Thread {
           return State.ZIPLINING;
         }
         if (initial_loc_done && zipline_loc_done && traversed_zipline) {
+          System.out.println("INTEGRATION TEST DONE");
           Button.waitForAnyPress();
           return State.SEARCHING;
         }
@@ -275,6 +279,7 @@ public class MainController extends Thread {
     sub_state = zip.process();
 
     if (zip.isDone()) {
+      Button.waitForAnyPress();
       traversed_zipline = true;
       loc.setRefPos(ZO_R); // Set the reference position to after the zip line, in the red zone.
       return State.LOCALIZING;
