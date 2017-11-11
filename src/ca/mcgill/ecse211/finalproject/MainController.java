@@ -242,7 +242,6 @@ public class MainController extends Thread {
       if (is_red) {
         if (initial_loc_done) {
           // The river was crossed, move to searching
-          Button.waitForAnyPress();
           return State.SEARCHING;
         }
       } else {
@@ -250,10 +249,11 @@ public class MainController extends Thread {
           loc.setRefPos(ZO_G);
           return State.LOCALIZING;
         }
-        if (initial_loc_done && zipline_loc_done) {
+        if (initial_loc_done && zipline_loc_done && !traversed_zipline) {
           return State.ZIPLINING;
         }
         if (initial_loc_done && zipline_loc_done && traversed_zipline) {
+          Button.waitForAnyPress();
           return State.SEARCHING;
         }
       }
@@ -432,7 +432,7 @@ public class MainController extends Thread {
        * Generate path to get to zip line. TODO: test this. Might need to account for search zone
        * potentially in the way. (or avoid it)
        */
-      zipPath = new Waypoint[] {/* new Waypoint(greenTeamStart.y, ZO_G.x), */ ZO_G};
+      zipPath = new Waypoint[] {new Waypoint(ZO_G.x, greenTeamStart.y > ZO_G.y ? ZO_G.y + 1 : ZO_G.y - 1),  ZO_G};
 
     } catch (Exception e) {
       System.err.println("Error: " + e.getMessage());
