@@ -101,18 +101,18 @@ public class SensorData {
    *
    * @param value the latest data value returned by the light sensor
    */
-  public void lightLevelHandler(float value, int sel) {
+  public void lightLevelHandler(float value, int selection) {
     synchronized (this.llDataLock) {
       // Update moving statistics.
       synchronized (this.llStatsLock) {
-        if (sel == 1) {
+        if (selection == 1) {
           this.updateMovingStatistics(this.llStats1, this.llData1, this.llIndex1, value);
         }
       }
 
 
       // Insert latest sample.
-      switch (sel) {
+      switch (selection) {
         case 1:
           this.llData1[this.llIndex1] = value;
           break;
@@ -126,13 +126,13 @@ public class SensorData {
 
       // Insert latest sample derivative.
       synchronized (this.llDataDerivLock) {
-        if (sel == 1) {
+        if (selection == 1) {
           float lastValue = this.llData1[(this.llIndex1 - 1 + LL_DATA_SIZE) % LL_DATA_SIZE];
           this.llDataDeriv[this.llIndex1] = value - lastValue;
         }
       }
 
-      switch (sel) {
+      switch (selection) {
         case 1:
           this.llIndex1++;
           this.llIndex1 %= this.LL_DATA_SIZE;
@@ -208,13 +208,13 @@ public class SensorData {
    *
    * @return a double array holding a copy of the original light sensor data
    */
-  public float[] getLLData(int sel) {
+  public float[] getLLData(int selection) {
     float[] data = null;
     if (this.llFilled) {
       synchronized (this.llDataLock) {
-        if (sel == 1) {
+        if (selection == 1) {
           data = this.llData1.clone();
-        } else if (sel == 2) {
+        } else if (selection == 2) {
           data = this.llData2.clone();
         } else {
           data = null;
@@ -227,16 +227,16 @@ public class SensorData {
   /**
    * Get the latest data value polled from the light sensor.
    *
-   * @param sel the light sensor you want to get data from (1 = left, 2 = right, 3 = middle)
+   * @param selection the light sensor you want to get data from (1 = left, 2 = right, 3 = middle)
    * @return the latest light sensor data value
    */
-  public float getLLDataLatest(int sel) {
+  public float getLLDataLatest(int selection) {
     float value;
     // We can safely assume that at least one value has been recorded.
     synchronized (this.llDataLock) {
-      if (sel == 1) {
+      if (selection == 1) {
         value = this.llData1[(this.llIndex1 - 1 + LL_DATA_SIZE) % LL_DATA_SIZE];
-      } else if (sel == 2) {
+      } else if (selection == 2) {
         value = this.llData2[(this.llIndex2 - 1 + LL_DATA_SIZE) % LL_DATA_SIZE];
       } else {
         value = 0;

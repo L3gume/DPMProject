@@ -10,22 +10,6 @@ import lejos.hardware.motor.EV3MediumRegulatedMotor;
  * @author Josh Inscoe
  */
 public class Driver {
-
-  // --------------------------------------------------------------------------------
-  // Constants
-  // --------------------------------------------------------------------------------
-
-  /**
-   * Enum describing the current state of the driver
-   */
-  public enum D_State {
-	UNKNOWN,
-    MOVING_FORWARD,
-    MOVING_BACKWARD,
-    ROTATING,
-    STOPPED
-  }
-
   // --------------------------------------------------------------------------------
   // Variables
   // --------------------------------------------------------------------------------
@@ -49,18 +33,6 @@ public class Driver {
     this.rightMotor = rightMotor;
     this.topMotor = topMotor;
     this.frontMotor = frontMotor;
-  }
-
-
-  /**
-   * Gets the current state of the driver
-   *
-   * @return D_State, the current state of the driver.
-   */
-  public D_State getState() {
-    // ...
-	return D_State.UNKNOWN;
-    // ...
   }
 
   /**
