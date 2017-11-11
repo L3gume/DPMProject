@@ -1,5 +1,6 @@
 package ca.mcgill.ecse211.finalproject;
 
+import ca.mcgill.ecse211.finalproject.SensorData.SensorID;
 import lejos.hardware.Sound;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 
@@ -90,7 +91,7 @@ public class ZipLine {
     // no need to suspend the odometer - we'll re-localize after crossing
     //done = false;
     if (!done) {
-      sd.incrementLLRefs();
+      sd.incrementSensorRefs(SensorID.LS_LEFT);
       return Zip_State.ALIGNING;   // haven't crossed yet => go to alignment
     } else {
       return Zip_State.IDLE;      // already crossed => chill here
@@ -172,7 +173,7 @@ public class ZipLine {
   private Zip_State process_done() {
     done = true;
     floor_filter = 0;			// reset the floor filter in case we need to do this again
-    sd.decrementLLRefs();
+    sd.decrementSensorRefs(SensorID.LS_LEFT);
     driver.stopTopMotor();
     return Zip_State.IDLE;
   }
