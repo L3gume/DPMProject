@@ -78,7 +78,7 @@ public class Driver {
    * @param speed desired speed of the motor.
    */
   public void setSpeedRightMotor(float speed) {
-    rightMotor.setSpeed(speed);
+    rightMotor.setSpeed(speed * FinalProject.RIGHT_WHEEL_MULT);
   }
 
   /**
@@ -104,7 +104,7 @@ public class Driver {
    */
   public void moveForward(double dist, boolean inst_ret) {
     setSpeedLeftMotor(FinalProject.SPEED_FWD);
-    setSpeedRightMotor(FinalProject.SPEED_FWD);
+    setSpeedRightMotor(FinalProject.SPEED_FWD * FinalProject.RIGHT_WHEEL_MULT);
     leftMotor.synchronizeWith(new EV3LargeRegulatedMotor[] {rightMotor});
     leftMotor.rotate(convertDistance(dist), true);
     rightMotor.rotate(convertDistance(dist), inst_ret);
@@ -129,7 +129,7 @@ public class Driver {
    */
   public void moveBackward(double dist, boolean inst_ret) {
     setSpeedLeftMotor(FinalProject.SPEED_FWD);
-    setSpeedRightMotor(FinalProject.SPEED_FWD);
+    setSpeedRightMotor(FinalProject.SPEED_FWD * FinalProject.RIGHT_WHEEL_MULT);
     leftMotor.synchronizeWith(new EV3LargeRegulatedMotor[] {rightMotor});
     leftMotor.rotate(-convertDistance(dist), true);
     rightMotor.rotate(-convertDistance(dist), inst_ret);

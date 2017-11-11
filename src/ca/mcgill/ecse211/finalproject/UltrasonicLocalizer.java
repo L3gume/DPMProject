@@ -1,6 +1,7 @@
 package ca.mcgill.ecse211.finalproject;
 
 import lejos.hardware.Sound;
+import sun.applet.Main;
 
 /**
  * Performs the ultrasonic localization
@@ -54,7 +55,7 @@ public class UltrasonicLocalizer {
     ref_pos = Localizer.getRefPos();
     sleepThread(1);
     determineMode();
-    determineRefAngle(ref_pos);
+    determineRefAngle();
 
     driver.rotate(360, true);
     wait(cur_mode);
@@ -138,13 +139,23 @@ public class UltrasonicLocalizer {
     }
   }
 
-  private void determineRefAngle(Waypoint ref_pos) {
-    // TODO: right now it always starts from [1,1] for testing purposes.
-    if (cur_mode == Mode.FALLING_EDGE) {
-      ref_angle = Math.toRadians(225);
-    } else {
-      ref_angle = Math.toRadians(45);
+  private void determineRefAngle() {
+    switch (MainController.is_red ? MainController.RedCorner : MainController.GreenCorner) {
+      case 0:
+        ref_angle = cur_mode == Mode.FALLING_EDGE ? Math.toRadians(225) : Math.toRadians(45);
+        break;
+      case 1:
+        ref_angle = cur_mode == Mode.FALLING_EDGE ? Math.toRadians(315) : Math.toRadians(135);
+        break;
+      case 2:
+        ref_angle = cur_mode == Mode.FALLING_EDGE ? Math.toRadians(45) : Math.toRadians(225);
+        break;
+      case 3:
+        ref_angle = cur_mode == Mode.FALLING_EDGE ? Math.toRadians(135) : Math.toRadians(315);
+        break;
+      default:
+        break;
     }
-
+    
   }
 }

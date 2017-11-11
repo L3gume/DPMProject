@@ -1,5 +1,6 @@
 package ca.mcgill.ecse211.finalproject;
 
+import lejos.hardware.Sound;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 
 /**
@@ -45,8 +46,9 @@ public class ZipLine {
    * @param driver Driver object, handles moving the robot.
    * @param sd SensorData object, gives access to the light sensor data.
    */
-  public ZipLine(EV3LargeRegulatedMotor zipMotor, Driver driver, SensorData sd) {
+  public ZipLine(EV3LargeRegulatedMotor zipMotor, Odometer odometer, Driver driver, SensorData sd) {
     this.zipMotor = zipMotor;
+    this.odometer = odometer;
     this.driver = driver;
     this.sd = sd;
   }
@@ -86,8 +88,9 @@ public class ZipLine {
    */
   private Zip_State process_idle() {
     // no need to suspend the odometer - we'll re-localize after crossing
-    
+    //done = false;
     if (!done) {
+      sd.incrementLLRefs();
       return Zip_State.ALIGNING;   // haven't crossed yet => go to alignment
     } else {
       return Zip_State.IDLE;      // already crossed => chill here
@@ -102,10 +105,10 @@ public class ZipLine {
    */
   private Zip_State process_aligning() {
 	// check the error between our current heading and the zipline start point
-    double err_theta = angleToPos(odometer, FinalProject.ZIPLINE_START_POS);	// TODO this value is passed in over WiFi, might be a different variable
-    
+    double err_theta = angleToPos(odometer, MainController.ZC_G);	// TODO this value is passed in over WiFi, might be a different variable
+
     if (Math.abs(err_theta) > FinalProject.ZIPLINE_ORIENTATION_THRESHOLD) {
-    	driver.rotate(err_theta, false);	// rotate to new vector and wait until finished rotating
+    	driver.rotate(Math.toDegrees(err_theta), true);	// rotate to new vector and wait until finished rotating
         return Zip_State.ALIGNING;			// then redo this state to check if we're aligned
     } else {
       return Zip_State.MOVING;		// once we're satisfactorily aligned, ~move~ on to moving
@@ -126,9 +129,10 @@ public class ZipLine {
     // if we're still on the ground, we missed the zip line - navigate back to start of zip line
     if (this.sd.getSensorDataLatest(SensorData.SensorID.LS_LEFT) > FinalProject.FLOOR_LIGHT_READING) {
     	// TODO leave this class, go back to navigating, navigate to start of zip line
-    	return Zip_State.IDLE;
+    	return Zip_State.MOVING;
     } else {
     	// we're on the zip line!
+        Sound.beepSequence();
     	return Zip_State.ZIPLINING;
     }
   }
@@ -148,8 +152,9 @@ public class ZipLine {
 	    	floor_filter++;
 	        return Zip_State.ZIPLINING;
 	      } else {
+	        Sound.beepSequenceUp();
 	        // we've arrived at the end of the zipline, and the wheels should be touching the ground
-	        driver.moveForward(FinalProject.BOARD_TILE_LENGTH * 2, false); 	// move away from the zipline
+	        driver.moveForward(FinalProject.BOARD_TILE_LENGTH * 1.2, false); 	// move away from the zipline
 	        driver.stopBoth(); 													// stop the main motors
 	        return Zip_State.DONE;
 	      }
@@ -167,6 +172,8 @@ public class ZipLine {
   private Zip_State process_done() {
     done = true;
     floor_filter = 0;			// reset the floor filter in case we need to do this again
+    sd.decrementLLRefs();
+    driver.stopTopMotor();
     return Zip_State.IDLE;
   }
 

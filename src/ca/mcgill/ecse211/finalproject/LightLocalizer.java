@@ -1,5 +1,6 @@
 package ca.mcgill.ecse211.finalproject;
 
+import ca.mcgill.ecse211.finalproject.SensorData.SensorID;
 import lejos.hardware.Sound;
 
 /**
@@ -50,8 +51,12 @@ public class LightLocalizer {
     boolean right_stopped = false;
     boolean turned = false;
     boolean forward = true;
-    double ref_angle = 0;
 
+    double angle_adjust = 0;
+    int start_corner =
+        MainController.is_red ? MainController.RedCorner : MainController.GreenCorner;
+    int x_pos_mult = 1;
+    int y_pos_mult = 1; 
     long started_moving_t = 0;
 
     // increment the references to the light poller to make the sensorData start gathering data.
@@ -60,64 +65,145 @@ public class LightLocalizer {
 
     sleepThread(1); // wait to make sure the sensorData class has time to get some data.
     ref_pos = Localizer.getRefPos(); // Get the reference position from the Localizer class.
-    ref_angle = getReferenceAngle();
-    
-    double align_ang = Math.toRadians(ref_angle) - odo.getTheta();
-    if (align_ang > Math.toRadians(180)) {
-      align_ang = align_ang - Math.toRadians(360);
+    if (ref_pos != (MainController.is_red ? MainController.redTeamStart
+        : MainController.greenTeamStart)) {
+      start_corner = 0;
+      
+      double ang = Math.toRadians(45) - odo.getTheta();
+      if (ang < -Math.toRadians(180)) {
+        ang = Math.toRadians(360) + ang;
+      }
+      dr.rotate(Math.toDegrees(ang), false); // align to 45
+      dr.moveBackward(10, false);
+    } else {
+      switch (start_corner) {
+        case 1:
+          x_pos_mult *= -1;
+          break;
+        case 2:
+          x_pos_mult *= -1;
+          y_pos_mult *= -1;
+          break;
+        case 3:
+          y_pos_mult *= -1;
+        default:
+          break;
+      }
     }
-    dr.rotate(Math.toDegrees(align_ang), false); // align to ref_angle
+    // ref_angle = getReferenceAngle();
+    double align_ang = 0;
+    if (ref_pos != (MainController.is_red ? MainController.redTeamStart
+        : MainController.greenTeamStart)) {
+      align_ang = -odo.getTheta();
+    } else {
+      align_ang = start_corner * Math.toRadians(90) - odo.getTheta();
+    }
+    if (align_ang < -Math.toRadians(180)) {
+      align_ang = Math.toRadians(360) + align_ang;
+    }
+    dr.rotate(Math.toDegrees(align_ang), false); // align to 0
 
     dr.setSpeedLeftMotor(FinalProject.SPEED_FWD / 2);
     dr.setSpeedRightMotor(FinalProject.SPEED_FWD / 2);
     dr.endlessMoveForward();
     started_moving_t = System.currentTimeMillis();
     while (!(found_y && found_x)) {
-      if (!found_y) {
-        if (this.sd.getSensorDataLatest(SensorData.SensorID.LS_LEFT) < FinalProject.LIGHT_LEVEL_THRESHOLD && !left_stopped) {
-          // Left sensor hit the line.
-          dr.stopLeftWheel();
-          left_stopped = true;
+      if (start_corner == 0 || start_corner == 2) {
+        if (!found_y) {
+          if (sd.getSensorDataLatest(SensorID.LS_LEFT) < FinalProject.LIGHT_LEVEL_THRESHOLD && !left_stopped) {
+            // Left sensor hit the line.
+            dr.stopLeftWheel();
+            left_stopped = true;
+          }
+          if (sd.getSensorDataLatest(SensorID.LS_RIGHT) < FinalProject.LIGHT_LEVEL_THRESHOLD && !right_stopped) {
+            // Right sensor hit the line.
+            dr.stopRightWheel();
+            right_stopped = true;
+          }
+          if (left_stopped && right_stopped) {
+            Sound.twoBeeps();
+            found_y = true;
+            left_stopped = false;
+            right_stopped = false;
+            odo.setX(ref_pos.x * FinalProject.BOARD_TILE_LENGTH - x_pos_mult * FinalProject.LIGHT_SENSOR_OFFSET);
+            odo.setTheta(0 + start_corner * Math.toRadians(90));
+          }
+        } else if (found_y && !found_x) {
+          if (!turned) {
+            turned = true;
+            dr.moveBackward(10, false);
+            dr.rotate(90, false);
+            dr.setSpeedLeftMotor(FinalProject.SPEED_FWD / 2);
+            dr.setSpeedRightMotor(FinalProject.SPEED_FWD / 2);
+            dr.endlessMoveForward();
+            started_moving_t = System.currentTimeMillis();
+          }
+          if (sd.getSensorDataLatest(SensorID.LS_LEFT) < FinalProject.LIGHT_LEVEL_THRESHOLD && !left_stopped) {
+            // Left sensor hit the line.
+            dr.stopLeftWheel();
+            left_stopped = true;
+          }
+          if (sd.getSensorDataLatest(SensorID.LS_RIGHT) < FinalProject.LIGHT_LEVEL_THRESHOLD && !right_stopped) {
+            dr.stopRightWheel();
+            right_stopped = true;
+          }
+          if (left_stopped && right_stopped) {
+            Sound.twoBeeps();
+            found_x = true;
+            left_stopped = false;
+            right_stopped = false;
+            odo.setY(ref_pos.y * FinalProject.BOARD_TILE_LENGTH - y_pos_mult * FinalProject.LIGHT_SENSOR_OFFSET);
+            odo.setTheta(Math.toRadians(90 + start_corner * 90));
+          }
         }
-        if (this.sd.getSensorDataLatest(SensorData.SensorID.LS_RIGHT) < FinalProject.LIGHT_LEVEL_THRESHOLD && !right_stopped) {
-          // Right sensor hit the line.
-          dr.stopRightWheel();
-          right_stopped = true;
-        }
-        if (left_stopped && right_stopped) {
-          Sound.twoBeeps();
-          found_y = true;
-          left_stopped = false;
-          right_stopped = false;
-          odo.setX(ref_pos.x * FinalProject.BOARD_TILE_LENGTH - FinalProject.LIGHT_SENSOR_OFFSET);
-          odo.setTheta(0);
-        }
-      } else if (found_y && !found_x) {
-        if (!turned) {
-          turned = true;
-          dr.moveBackward(10, false);
-          dr.rotate(90, false);
-          dr.setSpeedLeftMotor(FinalProject.SPEED_FWD / 2);
-          dr.setSpeedRightMotor(FinalProject.SPEED_FWD / 2);
-          dr.endlessMoveForward();
-          started_moving_t = System.currentTimeMillis();
-        }
-        if (this.sd.getSensorDataLatest(SensorData.SensorID.LS_LEFT) < FinalProject.LIGHT_LEVEL_THRESHOLD && !left_stopped) {
-          // Left sensor hit the line.
-          dr.stopLeftWheel();
-          left_stopped = true;
-        }
-        if (this.sd.getSensorDataLatest(SensorData.SensorID.LS_RIGHT) < FinalProject.LIGHT_LEVEL_THRESHOLD && !right_stopped) {
-          dr.stopRightWheel();
-          right_stopped = true;
-        }
-        if (left_stopped && right_stopped) {
-          Sound.twoBeeps();
-          found_x = true;
-          left_stopped = false;
-          right_stopped = false;
-          odo.setY(ref_pos.y * FinalProject.BOARD_TILE_LENGTH - FinalProject.LIGHT_SENSOR_OFFSET);
-          odo.setTheta(Math.toRadians(90));
+      } else if (start_corner == 1 || start_corner == 3) {
+        // Reverse, hard coded bullshit but it works
+        if (!found_x) {
+          if (sd.getSensorDataLatest(SensorID.LS_LEFT) < FinalProject.LIGHT_LEVEL_THRESHOLD && !left_stopped) {
+            // Left sensor hit the line.
+            dr.stopLeftWheel();
+            left_stopped = true;
+          }
+          if (sd.getSensorDataLatest(SensorID.LS_RIGHT) < FinalProject.LIGHT_LEVEL_THRESHOLD && !right_stopped) {
+            // Right sensor hit the line.
+            dr.stopRightWheel();
+            right_stopped = true;
+          }
+          if (left_stopped && right_stopped) {
+            Sound.twoBeeps();
+            found_x = true;
+            left_stopped = false;
+            right_stopped = false;
+            odo.setY(ref_pos.y * FinalProject.BOARD_TILE_LENGTH - y_pos_mult * FinalProject.LIGHT_SENSOR_OFFSET);
+            odo.setTheta(0 + start_corner * Math.toRadians(90));
+          }
+        } else if (found_x && !found_y) {
+          if (!turned) {
+            turned = true;
+            dr.moveBackward(10, false);
+            dr.rotate(90, false);
+            dr.setSpeedLeftMotor(FinalProject.SPEED_FWD / 2);
+            dr.setSpeedRightMotor(FinalProject.SPEED_FWD / 2);
+            dr.endlessMoveForward();
+            started_moving_t = System.currentTimeMillis();
+          }
+          if (sd.getSensorDataLatest(SensorID.LS_LEFT) < FinalProject.LIGHT_LEVEL_THRESHOLD && !left_stopped) {
+            // Left sensor hit the line.
+            dr.stopLeftWheel();
+            left_stopped = true;
+          }
+          if (sd.getSensorDataLatest(SensorID.LS_RIGHT) < FinalProject.LIGHT_LEVEL_THRESHOLD && !right_stopped) {
+            dr.stopRightWheel();
+            right_stopped = true;
+          }
+          if (left_stopped && right_stopped) {
+            Sound.twoBeeps();
+            found_y = true;
+            left_stopped = false;
+            right_stopped = false;
+            odo.setX(ref_pos.x * FinalProject.BOARD_TILE_LENGTH - x_pos_mult * FinalProject.LIGHT_SENSOR_OFFSET);
+            odo.setTheta(Math.toRadians(90 + start_corner * 90));
+          }
         }
       }
 
@@ -129,21 +215,7 @@ public class LightLocalizer {
        */
       if ((!found_y || !found_x)
           && System.currentTimeMillis() - started_moving_t > FinalProject.MOVE_TIME_THRESHOLD) {
-        if (!left_stopped && !right_stopped) {
-          if (forward) {
-            dr.setSpeedLeftMotor(150);
-            dr.setSpeedRightMotor(150);
-            dr.endlessMoveBackward();
-            started_moving_t = System.currentTimeMillis();
-            forward = false;
-          } else {
-            dr.setSpeedLeftMotor(150);
-            dr.setSpeedRightMotor(150);
-            dr.endlessMoveForward();
-            started_moving_t = System.currentTimeMillis();
-            forward = true;
-          }
-        } else if (left_stopped && !right_stopped) {
+        if (left_stopped && !right_stopped) {
           if (forward) {
             dr.setSpeedRightMotor(100);
             dr.rightMotorBackward();
@@ -155,15 +227,33 @@ public class LightLocalizer {
             started_moving_t = System.currentTimeMillis();
             forward = true;
           }
-        } else if (!left_stopped && right_stopped) {
+        }
+
+        if (!left_stopped && right_stopped) {
           if (forward) {
-            dr.setSpeedLeftMotor(100);
+            dr.setSpeedLeftMotor(125);
             dr.leftMotorBackward();
             started_moving_t = System.currentTimeMillis();
             forward = false;
           } else {
             dr.setSpeedLeftMotor(100);
             dr.leftMotorForward();
+            started_moving_t = System.currentTimeMillis();
+            forward = true;
+          }
+        }
+
+        if (!left_stopped && !right_stopped) {
+          if (forward) {
+            dr.setSpeedLeftMotor(150);
+            dr.setSpeedRightMotor(150);
+            dr.endlessMoveBackward();
+            started_moving_t = System.currentTimeMillis();
+            forward = false;
+          } else {
+            dr.setSpeedLeftMotor(150);
+            dr.setSpeedRightMotor(150);
+            dr.endlessMoveForward();
             started_moving_t = System.currentTimeMillis();
             forward = true;
           }
@@ -195,7 +285,7 @@ public class LightLocalizer {
       // TODO: handle exception
     }
   }
-  
+
   private double getReferenceAngle() {
     double error = 8.0;
     double theta = Math.toDegrees(odo.getTheta());
@@ -213,6 +303,6 @@ public class LightLocalizer {
       // Make the robot align to 0.
       dr.rotate(-theta, false);
       return 0;
-    }    
+    }
   }
 }

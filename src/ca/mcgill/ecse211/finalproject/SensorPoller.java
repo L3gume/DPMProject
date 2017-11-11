@@ -74,6 +74,7 @@ public class SensorPoller extends Thread {
         this.sd.sensorDataHandler(SensorData.SensorID.LS_LEFT, this.lDataLeft[0]);
       }
 
+
       // Sleep for a bit.
       try {
         Thread.sleep(FinalProject.SLEEP_TIME);

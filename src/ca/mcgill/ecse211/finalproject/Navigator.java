@@ -1,5 +1,7 @@
 package ca.mcgill.ecse211.finalproject;
 
+import com.sun.swing.internal.plaf.synth.resources.synth;
+
 /**
  * Handles navigating through sets of waypoints as well as avoiding obstacles when they are encountered.
  */
@@ -29,6 +31,7 @@ public class Navigator {
   private Nav_State cur_state = Nav_State.IDLE;
   private Waypoint[] path; // The set of waypoints the robot will have to travel, initialized by the setPath() method.
   private Waypoint target_pos = null; // Target waypoint
+  private Waypoint last_target_pos = null;
   private int waypoint_progress = -1; // A counter to keep track of our progress (indexing the path array)
   private double angle_to_target_pos; // Angle between the robot's direction and the target waypoint.
   private double dist_to_target_pos; // Distance to target waypoint.
@@ -100,8 +103,8 @@ public class Navigator {
                                     // case.
     if (target_pos != null) { // Compute the distance and angle to the target position, if rotation is needed, set state to
       // rotating, if not: move.
-      updateTargetInfo();
       done = false;
+      updateTargetInfo();
       if (Math.abs(angle_to_target_pos) > 0) {
         return Nav_State.ROTATING;
       } else if (dist_to_target_pos > 0) {
@@ -109,7 +112,7 @@ public class Navigator {
       }
 
       // Fallthrough, shouldn't happen.
-      return Nav_State.IDLE;
+      //return Nav_State.IDLE;
     }
     // no more target position = done
     return done ? Nav_State.IDLE : Nav_State.DONE;
@@ -160,7 +163,7 @@ public class Navigator {
       }
     } else {
       // We missed the point (dist_to_target_pos > min_dist), turn around and get there!
-      if (dist_to_target_pos < 10) {
+      if (dist_to_target_pos < 5) {
         driver.moveBackward(dist_to_target_pos, false);
       }
       return Nav_State.ROTATING;
@@ -306,6 +309,8 @@ public class Navigator {
         }
         // wait for new path.
         return null;
+      } else {
+        last_target_pos = target_pos; // set the current pos as previous target.
       }
     } else {
       System.out.println("Path is NULL");
@@ -321,7 +326,11 @@ public class Navigator {
   public Waypoint getTargetPos() {
     return target_pos;
   }
-
+  
+  public synchronized Waypoint getLastTargetPos() {
+    return last_target_pos;
+  }
+  
   /*
    * These two methods are meant to guarantee locked access to the obstacle_detected variable for
    * both the navigator and the sensor poller
