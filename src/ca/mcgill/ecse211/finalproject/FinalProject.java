@@ -149,6 +149,7 @@ public class FinalProject {
 
     // Create MainController object.
     MainController cont = new MainController(loc, ul, ll, nav, zip, null);
+    // TODO: remove display during demo/competition
     Display disp = new Display(LocalEV3.get().getTextLCD(), odometer, cont, sd, sensorPoller);
 
     dr.setSpeedLeftMotor(SPEED_ROT);
@@ -165,100 +166,5 @@ public class FinalProject {
     //dr.rotate(90, false);
     while (Button.waitForAnyPress() != Button.ID_ESCAPE);
     System.exit(0);
-  }
-
-
-  // --------------------------------------------------------------------------------
-  // Helper methods
-  // --------------------------------------------------------------------------------
-
-  /**
-   * Display the main menu, querying the user for a pair of X/Y-coordinates.
-   *
-   * @param t the EV3 LCD display to which the main menu should be output
-   * @param title the title to display in the menu
-   * @param llim the lower limit allowed for an X/Y-coordinate
-   * @param ulim the upper limit allowed for an X/Y-coordinate
-   * @return a Waypoint object holding an X/Y-coordinate pair
-   */
-  private static Waypoint getCoordinates(final TextLCD t, String title, int llim, int ulim) {
-    boolean done = false;
-
-    // Clear the display.
-    t.clear();
-
-    t.drawString(title, 0, 0);
-    t.drawString("-----------------", 0, 1);
-    t.drawString("                 ", 0, 2);
-
-    int[] coords = new int[] {0, 0};
-
-    int index = 0;
-
-    while (!done) {
-      int buttonChoice = -1;
-
-      // Clear the current x/y-coordinate values.
-      t.drawString("X:               ", 0, 3);
-      t.drawString("Y:               ", 0, 4);
-
-      // Print the current x/y-coordinate values.
-      t.drawString(String.format("%2d", coords[0]), 3, 3);
-      t.drawString(String.format("%2d", coords[1]), 3, 4);
-
-      // Draw the indicator showing which coordinate value is currently selected.
-      t.drawString("<--", 12, 3 + index);
-
-      buttonChoice = Button.waitForAnyPress();
-
-      switch (buttonChoice) {
-        // Select the x-coordinate for modification.
-        case Button.ID_UP:
-          index = 0;
-
-          break;
-
-        // Select the y-coordinate for modification.
-        case Button.ID_DOWN:
-          index = 1;
-
-          break;
-
-        // Decrease the currently selected coordinate value.
-        case Button.ID_LEFT:
-          if (coords[index] > llim) {
-            coords[index] -= 1;
-          }
-
-          break;
-
-        // Increase the currently selected coordinate value.
-        case Button.ID_RIGHT:
-          if (coords[index] < ulim) {
-            coords[index] += 1;
-          }
-
-          break;
-
-        // Submit selected coordinates.
-        case Button.ID_ENTER:
-          done = true;
-
-          break;
-
-        // Exit.
-        default:
-          // Button.ID_ESCAPE
-          System.exit(0);
-      }
-    }
-
-    // Convert the X/Y-coordinate (currently in grid lines) to centimeters.
-    double x = (double) (coords[0]) * FinalProject.BOARD_TILE_LENGTH;
-    double y = (double) (coords[1]) * FinalProject.BOARD_TILE_LENGTH;
-
-    Waypoint waypoint = new Waypoint(x, y);
-
-    return waypoint;
   }
 }
