@@ -124,7 +124,7 @@ public class ZipLine {
     driver.moveForward(2*FinalProject.BOARD_TILE_LENGTH, false);	// wait while moving
     
     // if we're still on the ground, we missed the zip line - navigate back to start of zip line
-    if (sd.getLLDataLatest(1) > FinalProject.FLOOR_LIGHT_READING) {
+    if (this.sd.getSensorDataLatest(SensorData.SensorID.LS_LEFT) > FinalProject.FLOOR_LIGHT_READING) {
     	// TODO leave this class, go back to navigating, navigate to start of zip line
     	return Zip_State.IDLE;
     } else {
@@ -141,7 +141,7 @@ public class ZipLine {
    */
   private Zip_State process_ziplining() {
 	  // if we're getting light readings, we're approaching the floor
-	  if (sd.getLLDataLatest(1) > FinalProject.FLOOR_LIGHT_READING) {
+	  if (this.sd.getSensorDataLatest(SensorData.SensorID.LS_LEFT) > FinalProject.FLOOR_LIGHT_READING) {
 	      if (floor_filter < FinalProject.FLOOR_READING_FILTER) {
 	        // make sure that we're not getting erroneous readings
 	    	  	// we really don't want to be stranded on the zip line!
