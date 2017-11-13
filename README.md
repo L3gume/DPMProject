@@ -2,7 +2,7 @@
 
 To perform the integration test:
 
-1. Install the Server software provided by the prof on MyCourses
+1. Install the Server software provided by the prof on MyCourses, FOLLOW THE INSTRUCTIONS GIVEN WITH IT TO ADD THE JAR TO THE PROJECT.
 2. Connect both the server computer (the one running the software) and the robot to the same network
 3. Get the code from the integration-test branch on the git repository (don't copy and paste it, you need the whole thing)
 4. load on the program on the brick

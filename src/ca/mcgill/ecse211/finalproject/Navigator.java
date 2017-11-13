@@ -1,7 +1,5 @@
 package ca.mcgill.ecse211.finalproject;
 
-import com.sun.swing.internal.plaf.synth.resources.synth;
-
 /**
  * Handles navigating through sets of waypoints as well as avoiding obstacles when they are encountered.
  */
