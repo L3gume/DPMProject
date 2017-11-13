@@ -42,7 +42,7 @@ public class FinalProject {
   // Localization-related constants
   public static final int RISING_EDGE_THRESHOLD = 50;
   public static final int FALLING_EDGE_THRESHOLD = 50;
-  public static final float LIGHT_LEVEL_THRESHOLD = 0.30f;
+  public static final float LIGHT_LEVEL_THRESHOLD = 0.3f;
   public static final double LIGHT_SENSOR_OFFSET = 2.23;
   public static final long MOVE_TIME_THRESHOLD = 4000; // milliseconds
   public static final Waypoint DEBUG_REF_POS = new Waypoint(1, 6);

@@ -80,6 +80,7 @@ public class MainController extends Thread {
   private boolean initial_loc_done = false;
   private boolean zipline_loc_done = false;
   private boolean traversed_zipline = false;
+  private boolean finished_demo = false;
 
   /**
    * Constructor
@@ -175,6 +176,9 @@ public class MainController extends Thread {
    */
   private State process_idle() {
     loc.setRefPos(is_red ? redTeamStart : greenTeamStart); // initial localization.
+    if (finished_demo) {
+      return State.IDLE;
+    }
     return State.LOCALIZING;
   }
 
@@ -254,7 +258,8 @@ public class MainController extends Thread {
         }
         if (initial_loc_done && zipline_loc_done && traversed_zipline) {
           Button.waitForAnyPress();
-          return State.SEARCHING;
+          finished_demo = true;
+          return State.IDLE;
         }
       }
     } else {

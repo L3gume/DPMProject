@@ -51,13 +51,12 @@ public class LightLocalizer {
     boolean turned = false;
     boolean forward = true;
 
-    double angle_adjust = 0;
     int start_corner =
         MainController.is_red ? MainController.RedCorner : MainController.GreenCorner;
     int x_pos_mult = 1;
     int y_pos_mult = 1; 
     long started_moving_t = 0;
-
+    int error_counter = 0; 
     sd.incrementLLRefs(); // increment the references to the light poller to make the sensorData
                           // start gathering data.
     sleepThread(1); // wait to make sure the sensorData class has time to get some data.
@@ -87,7 +86,6 @@ public class LightLocalizer {
           break;
       }
     }
-    // ref_angle = getReferenceAngle();
     double align_ang = 0;
     if (ref_pos != (MainController.is_red ? MainController.redTeamStart
         : MainController.greenTeamStart)) {
@@ -100,8 +98,8 @@ public class LightLocalizer {
     }
     dr.rotate(Math.toDegrees(align_ang), false); // align to 0
 
-    dr.setSpeedLeftMotor(FinalProject.SPEED_FWD / 2);
-    dr.setSpeedRightMotor(FinalProject.SPEED_FWD / 2);
+    dr.setSpeedLeftMotor(FinalProject.SPEED_FWD / 1.5f);
+    dr.setSpeedRightMotor(FinalProject.SPEED_FWD / 1.5f);
     dr.endlessMoveForward();
     started_moving_t = System.currentTimeMillis();
     while (!(found_y && found_x)) {
@@ -130,10 +128,11 @@ public class LightLocalizer {
             turned = true;
             dr.moveBackward(10, false);
             dr.rotate(90, false);
-            dr.setSpeedLeftMotor(FinalProject.SPEED_FWD / 2);
-            dr.setSpeedRightMotor(FinalProject.SPEED_FWD / 2);
+            dr.setSpeedLeftMotor(FinalProject.SPEED_FWD / 1.5f);
+            dr.setSpeedRightMotor(FinalProject.SPEED_FWD / 1.5f);
             dr.endlessMoveForward();
             started_moving_t = System.currentTimeMillis();
+            forward = true;
           }
           if (sd.getLLDataLatest(1) < FinalProject.LIGHT_LEVEL_THRESHOLD && !left_stopped) {
             // Left sensor hit the line.
@@ -154,7 +153,7 @@ public class LightLocalizer {
           }
         }
       } else if (start_corner == 1 || start_corner == 3) {
-        // Reverse, hard coded bullshit but it works
+        // Reverse order, hard coded crap but it works
         if (!found_x) {
           if (sd.getLLDataLatest(1) < FinalProject.LIGHT_LEVEL_THRESHOLD && !left_stopped) {
             // Left sensor hit the line.
@@ -179,10 +178,11 @@ public class LightLocalizer {
             turned = true;
             dr.moveBackward(10, false);
             dr.rotate(90, false);
-            dr.setSpeedLeftMotor(FinalProject.SPEED_FWD / 2);
-            dr.setSpeedRightMotor(FinalProject.SPEED_FWD / 2);
+            dr.setSpeedLeftMotor(FinalProject.SPEED_FWD / 1.5f);
+            dr.setSpeedRightMotor(FinalProject.SPEED_FWD / 1.5f);
             dr.endlessMoveForward();
             started_moving_t = System.currentTimeMillis();
+            forward = true;
           }
           if (sd.getLLDataLatest(1) < FinalProject.LIGHT_LEVEL_THRESHOLD && !left_stopped) {
             // Left sensor hit the line.
@@ -209,17 +209,19 @@ public class LightLocalizer {
        * 
        * if the robot hasn't found a line after 4 seconds, go backwards. Helps covering the cases
        * where the robot isn't in the bottom left quadrant (the ref position being the origin)
+       * 
+       * The speed gradually increases as the robot changes direction to deal with the case where it is stuck between two lines.
        */
       if ((!found_y || !found_x)
           && System.currentTimeMillis() - started_moving_t > FinalProject.MOVE_TIME_THRESHOLD) {
         if (left_stopped && !right_stopped) {
           if (forward) {
-            dr.setSpeedRightMotor(100);
+            dr.setSpeedRightMotor(175);
             dr.rightMotorBackward();
             started_moving_t = System.currentTimeMillis();
             forward = false;
           } else {
-            dr.setSpeedRightMotor(100);
+            dr.setSpeedRightMotor(175);
             dr.rightMotorForward();
             started_moving_t = System.currentTimeMillis();
             forward = true;
@@ -228,12 +230,12 @@ public class LightLocalizer {
 
         if (!left_stopped && right_stopped) {
           if (forward) {
-            dr.setSpeedLeftMotor(125);
+            dr.setSpeedLeftMotor(175);
             dr.leftMotorBackward();
             started_moving_t = System.currentTimeMillis();
             forward = false;
           } else {
-            dr.setSpeedLeftMotor(100);
+            dr.setSpeedLeftMotor(175);
             dr.leftMotorForward();
             started_moving_t = System.currentTimeMillis();
             forward = true;
@@ -242,14 +244,14 @@ public class LightLocalizer {
 
         if (!left_stopped && !right_stopped) {
           if (forward) {
-            dr.setSpeedLeftMotor(150);
-            dr.setSpeedRightMotor(150);
+            dr.setSpeedLeftMotor(150 + 25 * error_counter++);
+            dr.setSpeedRightMotor(150 + 25 * error_counter++);
             dr.endlessMoveBackward();
             started_moving_t = System.currentTimeMillis();
             forward = false;
           } else {
-            dr.setSpeedLeftMotor(150);
-            dr.setSpeedRightMotor(150);
+            dr.setSpeedLeftMotor(150 + 25 * error_counter++);
+            dr.setSpeedRightMotor(150 + 25 * error_counter++);
             dr.endlessMoveForward();
             started_moving_t = System.currentTimeMillis();
             forward = true;
@@ -257,13 +259,11 @@ public class LightLocalizer {
         }
       }
       try {
-        Thread.sleep(30);
+        Thread.sleep(20);
       } catch (Exception e) {
         System.out.println("can't pause");
       }
-
     }
-
     sd.decrementLLRefs();
     Sound.beepSequenceUp();
   }

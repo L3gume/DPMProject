@@ -19,7 +19,6 @@ public class Driver {
   private EV3LargeRegulatedMotor topMotor; // motor for the zip line
   private EV3MediumRegulatedMotor frontMotor; // motor for the sensors
 
-
   /**
    * Constructor
    *
@@ -146,7 +145,6 @@ public class Driver {
    * Makes the left wheel go forward at half the regular speed.
    */
   public void leftMotorForward() {
-    setSpeedLeftMotor(FinalProject.SPEED_FWD/2);
     leftMotor.forward();
   }
   
@@ -154,7 +152,6 @@ public class Driver {
    * Makes the right wheel go forward at half the regular speed.
    */
   public void rightMotorForward() {
-    setSpeedRightMotor(FinalProject.SPEED_FWD/2);
     rightMotor.forward();
   }
   
@@ -162,7 +159,6 @@ public class Driver {
    * Makes the left wheel go backward at half the regular speed.
    */
   public void leftMotorBackward() {
-    setSpeedLeftMotor(FinalProject.SPEED_FWD/2);
     leftMotor.backward();
   }
   
@@ -170,7 +166,6 @@ public class Driver {
    * Makes the right wheel go backward at half the regular speed.
    */
   public void rightMotorBackward() {
-    setSpeedRightMotor(FinalProject.SPEED_FWD/2);
     rightMotor.backward();
   }
   

@@ -32,9 +32,10 @@ public class SensorData {
   private float usData[];
 
   // Circular arrays holding the derivative of the sensor data
-  private float llDataDeriv[];
+  private float llDataDeriv1[];
+  private float llDataDeriv2[];
+  private float llDataDeriv3[];
   private float usDataDeriv[];
-
   // The next index at which data should be placed in the circular arrays
   private int llIndex1; // sensor left
   private int llIndex2; // sensor right
@@ -70,7 +71,9 @@ public class SensorData {
     this.llData2 = new float[LL_DATA_SIZE];
     this.llData3 = new float[LL_DATA_SIZE];
     this.usData = new float[US_DATA_SIZE];
-    this.llDataDeriv = new float[LL_DATA_SIZE];
+    this.llDataDeriv1 = new float[LL_DATA_SIZE];
+    this.llDataDeriv2 = new float[LL_DATA_SIZE];
+    this.llDataDeriv3 = new float[LL_DATA_SIZE];
     this.usDataDeriv = new float[US_DATA_SIZE];
 
     this.llIndex1 = 0;
@@ -104,12 +107,11 @@ public class SensorData {
   public void lightLevelHandler(float value, int selection) {
     synchronized (this.llDataLock) {
       // Update moving statistics.
-      synchronized (this.llStatsLock) {
-        if (selection == 1) {
-          this.updateMovingStatistics(this.llStats1, this.llData1, this.llIndex1, value);
-        }
-      }
-
+//      synchronized (this.llStatsLock) {
+//        if (selection == 1) {
+//          this.updateMovingStatistics(this.llStats1, this.llData1, this.llIndex1, value);
+//        }
+//      }
 
       // Insert latest sample.
       switch (selection) {
@@ -126,9 +128,20 @@ public class SensorData {
 
       // Insert latest sample derivative.
       synchronized (this.llDataDerivLock) {
-        if (selection == 1) {
-          float lastValue = this.llData1[(this.llIndex1 - 1 + LL_DATA_SIZE) % LL_DATA_SIZE];
-          this.llDataDeriv[this.llIndex1] = value - lastValue;
+        float lastValue = 0.f; 
+        switch (selection) {
+          case 1:
+            lastValue = this.llData1[(this.llIndex1 - 1 + LL_DATA_SIZE) % LL_DATA_SIZE];
+            this.llDataDeriv1[this.llIndex1] = value - lastValue;
+            break;
+          case 2:
+            lastValue = this.llData2[(this.llIndex2 - 1 + LL_DATA_SIZE) % LL_DATA_SIZE];
+            this.llDataDeriv2[this.llIndex2] = value - lastValue;
+            break;
+          case 3:
+            lastValue = this.llData3[(this.llIndex3 - 1 + LL_DATA_SIZE) % LL_DATA_SIZE];
+            this.llDataDeriv3[this.llIndex3] = value - lastValue;
+            break;
         }
       }
 
@@ -283,7 +296,7 @@ public class SensorData {
     float[] data = null;
     if (this.llFilled) {
       synchronized (this.llDataDerivLock) {
-        data = this.llDataDeriv.clone();
+        data = this.llDataDeriv1.clone();
       }
     }
     return data;
@@ -294,11 +307,15 @@ public class SensorData {
    *
    * @return the latest derivative of the light sensor data
    */
-  public double getLLDataDerivLatest() {
-    double value;
+  public float getLLDataDerivLatest(int selection) {
+    float value = 0.f;
     // We can safely assume that at least one value has been recorded.
     synchronized (this.llDataDerivLock) {
-      value = this.llDataDeriv[(this.llIndex1 - 1 + LL_DATA_SIZE) % LL_DATA_SIZE];
+      if (selection == 1) {
+        value = this.llDataDeriv1[(this.llIndex1 - 1 + LL_DATA_SIZE) % LL_DATA_SIZE];
+      } else if (selection == 2) {
+        value = this.llDataDeriv2[(this.llIndex2 - 1 + LL_DATA_SIZE) % LL_DATA_SIZE];
+      }
     }
     return value;
   }
