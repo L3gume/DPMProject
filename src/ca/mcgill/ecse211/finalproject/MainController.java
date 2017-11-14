@@ -3,6 +3,7 @@ package ca.mcgill.ecse211.finalproject;
 import java.util.Map;
 import ca.mcgill.ecse211.WiFiClient.WifiConnection;
 import lejos.hardware.Button;
+import lejos.hardware.Sound;
 
 /**
  * Main controller This class is the main thread of the program and the root of the state machine
@@ -22,6 +23,7 @@ public class MainController extends Thread {
   // --------------------------------------------------------------------------------
   // Game data
   // --------------------------------------------------------------------------------
+
   static boolean is_red = false; // True is on red team, false if on green team.
 
   static Waypoint redTeamStart;
@@ -52,12 +54,6 @@ public class MainController extends Thread {
 
   static Waypoint[] riverPath; // Path from the red zone to the green zone through the river.
   static Waypoint[] zipPath; // Path from the green starting corner to the zip line.
-
-
-  // --------------------------------------------------------------------------------
-  // Constants
-  // --------------------------------------------------------------------------------
-
 
   // --------------------------------------------------------------------------------
   // Variables
@@ -108,22 +104,6 @@ public class MainController extends Thread {
    * Main control thread, this is where most of the processing will happen.
    */
   public void run() {
-
-    //
-    // TODO:
-    //
-    // Fix up the code below to make it functional in the more general situation, when
-    // we are not necessarily in a corner (it should also work if we are in a corner).
-    //
-
-    //
-    // NOTE:
-    //
-    // This is a general outline of how zip-line traversal would have worked in Lab 5; however,
-    // it will likely be different in the final project, since we may not be in a corner when
-    // we need to start looking for the zip-line.
-    //
-
     /*
      * Get the game data from the server before doing anything.
      */
@@ -219,9 +199,18 @@ public class MainController extends Thread {
                                                                                             // (or
                                                                                             // different.
         } else {
-          // System.out.println("[MAINCONTROLLER] Move to SR_UR");
-          nav.setPath(new Waypoint[] {new Waypoint(ZO_R.x, SR_UR.y), SR_UR}); // Move to the search
-                                                                              // zone
+          if (ZO_R.x == ZO_G.x) {
+            if (SR_UR.y < ZO_R.y) {
+              // avoid hitting the base of the zip line.
+              nav.setPath(new Waypoint[] {
+                  new Waypoint(ZO_R.x + (ZO_R.x < SR_UR.x ? 1 : -1), ZO_R.y), new Waypoint(SR_UR.x - 0.5, SR_UR.y - 0.5)});
+            } else {
+              nav.setPath(new Waypoint[] {new Waypoint(ZO_R.x, SR_UR.y), new Waypoint(SR_UR.x - 0.5, SR_UR.y - 0.5)});
+            }
+          } else {
+            // This case already takes care of that.
+            nav.setPath(new Waypoint[] {new Waypoint(ZO_R.x, SR_UR.y), new Waypoint(SR_UR.x - 0.5, SR_UR.y - 0.5)});
+          }
         }
         return State.NAVIGATING;
       }
@@ -257,6 +246,7 @@ public class MainController extends Thread {
           return State.ZIPLINING;
         }
         if (initial_loc_done && zipline_loc_done && traversed_zipline) {
+          Sound.beepSequenceUp();
           Button.waitForAnyPress();
           finished_demo = true;
           return State.IDLE;
@@ -361,12 +351,8 @@ public class MainController extends Thread {
 
       if (RedTeam == FinalProject.TEAM_NB) {
         is_red = true;
-        // System.out.println("[GAMEDATA] Red team");
-        // river first
       } else if (GreenTeam == FinalProject.TEAM_NB) {
         is_red = false;
-        // System.out.println("[GAMEDATA] Green team");
-        // zipline first
       }
 
       /*
@@ -391,12 +377,6 @@ public class MainController extends Thread {
           riverPath = new Waypoint[] {new Waypoint(SV_UR.x - 0.5, SV_UR.y),
               new Waypoint(SV_LL.x + 0.5, SV_LL.y + 0.5), new Waypoint(SH_LL.x, SH_LL.y + 0.5)};
         }
-      } else {
-        // System.out.println("[RIVER] error finding the river's start: \n" + "Redzone: LL ["
-        // + Red_LL.x + " ; " + Red_LL.y + "]\n" + "Redzone: UR [" + Red_UR.x + " ; " + Red_UR.y
-        // + "]\n" + "River_h: LL [" + SH_LL.x + " ; " + SH_LL.y + "]\n" + "River_h: UR ["
-        // + SH_UR.x + " ; " + SH_UR.y + "]\n" + "River_v: LL [" + SV_LL.x + " ; " + SV_LL.y
-        // + "]\n" + "River_v: UR [" + SV_UR.x + " ; " + SV_UR.y + "]\n");
       }
 
       switch (RedCorner) {
@@ -414,7 +394,6 @@ public class MainController extends Thread {
           break;
       }
 
-
       switch (GreenCorner) {
         case 0:
           greenTeamStart = new Waypoint(1, 1);
@@ -430,14 +409,17 @@ public class MainController extends Thread {
           break;
       }
 
-      // TODO: add variables and flags to determine the sequence of states the controller must go
-      // through.
-
       /*
        * Generate path to get to zip line. TODO: test this. Might need to account for search zone
        * potentially in the way. (or avoid it)
        */
-      zipPath = new Waypoint[] {new Waypoint(ZO_G.x, greenTeamStart.y > ZO_G.y ? ZO_G.y + 1 : ZO_G.y - 1),  ZO_G};
+      if (ZO_G.x == ZO_R.x) {
+        zipPath = new Waypoint[] {
+            new Waypoint(greenTeamStart.x > ZO_G.x ? ZO_G.x + 1 : ZO_G.x - 1, ZO_G.y), ZO_G};
+      } else if (ZO_G.y == ZO_R.y || (ZO_G.x != ZO_R.x && ZO_G.y != ZO_R.y)) {
+        zipPath = new Waypoint[] {
+            new Waypoint(ZO_G.x, greenTeamStart.y > ZO_G.y ? ZO_G.y + 1 : ZO_G.y - 1), ZO_G};
+      }
 
     } catch (Exception e) {
       System.err.println("Error: " + e.getMessage());
