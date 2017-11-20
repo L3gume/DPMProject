@@ -10,16 +10,20 @@ public class SensorData {
   // Constants
   private final int LL_DATA_SIZE = 20;
   private final int US_DATA_SIZE = 20;
+  private final int COLOR_DATA_SIZE = 20;
 
   // Reference counts of other objects accessing sensor data
   private int llRefs;
   private int usRefs;
+  private int colorRefs;
 
   // Locks
   private final Object llRefsLock;
   private final Object usRefsLock;
+  private final Object colorRefsLock;
   private final Object llDataLock;
   private final Object usDataLock;
+  private final Object colorDataLock;
   private final Object llDataDerivLock;
   private final Object usDataDerivLock;
   private final Object llStatsLock;
@@ -28,18 +32,17 @@ public class SensorData {
   // Circular arrays holding the original sensor data
   private float llData1[];
   private float llData2[];
-  private float llData3[];
+  private float colorData[];
   private float usData[];
 
   // Circular arrays holding the derivative of the sensor data
   private float llDataDeriv1[];
   private float llDataDeriv2[];
-  private float llDataDeriv3[];
   private float usDataDeriv[];
   // The next index at which data should be placed in the circular arrays
   private int llIndex1; // sensor left
   private int llIndex2; // sensor right
-  private int llIndex3; // sensor mid
+  private int colorIndex; // sensor mid
   private int usIndex;
 
   // Boolean values signalling whether circular arrays are filled
@@ -56,8 +59,6 @@ public class SensorData {
   // 2 - moving standard deviation
   //
   private float[] llStats1;
-  private float[] llStats2;
-  private float[] llStats3;
   private float[] usStats;
 
   /**
@@ -66,33 +67,33 @@ public class SensorData {
   public SensorData() {
     this.llRefs = 0;
     this.usRefs = 0;
+    this.colorRefs = 0;
 
     this.llData1 = new float[LL_DATA_SIZE];
     this.llData2 = new float[LL_DATA_SIZE];
-    this.llData3 = new float[LL_DATA_SIZE];
+    this.colorData = new float[LL_DATA_SIZE];
     this.usData = new float[US_DATA_SIZE];
     this.llDataDeriv1 = new float[LL_DATA_SIZE];
     this.llDataDeriv2 = new float[LL_DATA_SIZE];
-    this.llDataDeriv3 = new float[LL_DATA_SIZE];
     this.usDataDeriv = new float[US_DATA_SIZE];
 
     this.llIndex1 = 0;
     this.llIndex2 = 0;
-    this.llIndex3 = 0;
+    this.colorIndex = 0;
     this.usIndex = 0;
 
     this.llFilled = false;
     this.usFilled = false;
 
     this.llStats1 = new float[] {0.0f, 0.0f, 0.0f};
-    this.llStats2 = new float[] {0.0f, 0.0f, 0.0f};
-    this.llStats3 = new float[] {0.0f, 0.0f, 0.0f};
     this.usStats = new float[] {0.0f, 0.0f, 0.0f};
 
     llRefsLock = new Object();
     usRefsLock = new Object();
+    colorRefsLock = new Object();
     llDataLock = new Object();
     usDataLock = new Object();
+    colorDataLock = new Object();
     llDataDerivLock = new Object();
     usDataDerivLock = new Object();
     llStatsLock = new Object();
@@ -121,9 +122,6 @@ public class SensorData {
         case 2:
           this.llData2[this.llIndex2] = value;
           break;
-        case 3:
-          this.llData3[this.llIndex3] = value;
-          break;
       }
 
       // Insert latest sample derivative.
@@ -138,10 +136,6 @@ public class SensorData {
             lastValue = this.llData2[(this.llIndex2 - 1 + LL_DATA_SIZE) % LL_DATA_SIZE];
             this.llDataDeriv2[this.llIndex2] = value - lastValue;
             break;
-          case 3:
-            lastValue = this.llData3[(this.llIndex3 - 1 + LL_DATA_SIZE) % LL_DATA_SIZE];
-            this.llDataDeriv3[this.llIndex3] = value - lastValue;
-            break;
         }
       }
 
@@ -154,16 +148,25 @@ public class SensorData {
           this.llIndex2++;
           this.llIndex2 %= this.LL_DATA_SIZE;
           break;
-        case 3:
-          this.llIndex3++;
-          this.llIndex3 %= this.LL_DATA_SIZE;
-          break;
       }
 
       if (!(this.llFilled) && this.llIndex1 == 0) {
         // Our circular array is now filled.
         this.llFilled = true;
       }
+    }
+  }
+  
+  /**
+   * Handler method to be called by the sensor poller.
+   * 
+   * @param value the RGB value read by the front color sensor.
+   */
+  public void colorHandler(float value) {
+    synchronized (colorDataLock) {
+      this.colorData[colorIndex] = value;
+      this.colorIndex++;
+      this.colorIndex %= COLOR_DATA_SIZE;
     }
   }
 
@@ -214,6 +217,15 @@ public class SensorData {
    */
   public synchronized int getUSRefs() {
     return this.usRefs;
+  }
+  
+  /**
+   * Get the number of external objects which access the color data.
+   * 
+   * @return the number of external objects which use the color sensor data provided by this object
+   */
+  public synchronized int getColorRefs() {
+    return this.colorRefs;
   }
 
   /**
@@ -350,6 +362,41 @@ public class SensorData {
   }
 
   /**
+   * Get the latest value polled from the front color sensor.
+   * 
+   * @return the latest RGB value polled from the front color sensor.
+   */
+  public float getColorDataLatest() {
+    float val;
+    synchronized (this.colorDataLock) {
+      val = this.colorData[(this.colorIndex - 1 + COLOR_DATA_SIZE) % COLOR_DATA_SIZE];
+    }
+    return val;
+  }
+  
+  /**
+   * Get the last color read by the front sensor, as an integer
+   * 
+   * @Return the latest color read by the sensor, as an integer from 1 to 4
+   */
+  public int getColorLatest() {
+    int color = 0;
+    synchronized (colorDataLock) {
+      float colorData = this.colorData[(this.colorIndex - 1 + COLOR_DATA_SIZE) % COLOR_DATA_SIZE];
+      if (colorData > 9 && colorData < 17) {
+        color = 1; // RED 
+      } else if (colorData > 1 && colorData < 8) {
+        color = 2; // BLUE
+      } else if (colorData > 15 && colorData < 22) {
+        color = 3; // YELLOW
+      } else if (colorData > 22 && colorData < 27) {
+        color = 4; // WHITE
+      }
+    }
+    return color;
+  }
+  
+  /**
    * Get the moving statistics of the light sensor data.
    *
    * @return a double array holding the average, variance, and standard deviation of the light
@@ -406,6 +453,17 @@ public class SensorData {
   }
 
   /**
+   * Increment by one the number of external objects accessing the color sensor data
+   */
+  public int incrementColorRefs() {
+    int refs;
+    synchronized (colorData) {
+      refs = ++this.colorRefs;
+    }
+    return refs;
+  }
+  
+  /**
    * Decrement by one the number of external objects accessing the light sensor data.
    */
   public int decrementLLRefs() {
@@ -429,6 +487,17 @@ public class SensorData {
     return refs;
   }
 
+  /**
+   * Decrement by one the number of external objects accessing the color sensor data
+   */
+  public int decrementColorRefs() {
+    int refs;
+    synchronized (colorData) {
+      refs = --this.colorRefs;
+    }
+    return refs;
+  }
+  
   /**
    * Update the moving statistics, `stats`, of the data samples, `data`.
    *

@@ -52,6 +52,8 @@ public class MainController extends Thread {
   static Waypoint SG_LL; // lower left corner of green search zone.
   static Waypoint SG_UR; // upper right corner of green search zone.
 
+  static Waypoint zip_red_other;
+  
   static Waypoint[] riverPath; // Path from the red zone to the green zone through the river.
   static Waypoint[] zipPath; // Path from the green starting corner to the zip line.
 
@@ -199,17 +201,17 @@ public class MainController extends Thread {
                                                                                             // (or
                                                                                             // different.
         } else {
-          if (ZO_R.x == ZO_G.x) {
-            if (SR_UR.y < ZO_R.y) {
+          if (ZC_G.x == ZO_G.x) {
+            if (SR_UR.y < zip_red_other.y) {
               // avoid hitting the base of the zip line.
               nav.setPath(new Waypoint[] {
-                  new Waypoint(ZO_R.x + (ZO_R.x < SR_UR.x ? 1 : -1), ZO_R.y), new Waypoint(SR_UR.x - 0.5, SR_UR.y - 0.5)});
+                  new Waypoint(zip_red_other.x + (zip_red_other.x < SR_UR.x ? 1 : -1), zip_red_other.y), new Waypoint(SR_UR.x - 0.5, SR_UR.y - 0.5)});
             } else {
-              nav.setPath(new Waypoint[] {new Waypoint(ZO_R.x, SR_UR.y), new Waypoint(SR_UR.x - 0.5, SR_UR.y - 0.5)});
+              nav.setPath(new Waypoint[] {new Waypoint(zip_red_other.x, SR_UR.y), new Waypoint(SR_UR.x - 0.5, SR_UR.y - 0.5)});
             }
           } else {
             // This case already takes care of that.
-            nav.setPath(new Waypoint[] {new Waypoint(ZO_R.x, SR_UR.y), new Waypoint(SR_UR.x - 0.5, SR_UR.y - 0.5)});
+            nav.setPath(new Waypoint[] {new Waypoint(zip_red_other.x, SR_UR.y), new Waypoint(SR_UR.x - 0.5, SR_UR.y - 0.5)});
           }
         }
         return State.NAVIGATING;
@@ -271,7 +273,13 @@ public class MainController extends Thread {
 
     if (zip.isDone()) {
       traversed_zipline = true;
-      loc.setRefPos(ZO_R); // Set the reference position to after the zip line, in the red zone.
+      zip_red_other = ZO_R; // just in case
+      if (ZO_G.x == ZC_G.x) {
+        zip_red_other = new Waypoint(ZC_G.x, ZC_G.y + 5);
+      } else if (ZO_G.y == ZC_G.y) {
+        zip_red_other = new Waypoint(ZC_G.x + 5, ZC_G.y);
+      }
+      loc.setRefPos(zip_red_other); // Set the reference position to after the zip line, in the red zone.
       return State.LOCALIZING;
     } else {
       return State.ZIPLINING;
@@ -413,10 +421,10 @@ public class MainController extends Thread {
        * Generate path to get to zip line. TODO: test this. Might need to account for search zone
        * potentially in the way. (or avoid it)
        */
-      if (ZO_G.x == ZO_R.x) {
+      if (ZO_G.x == ZC_G.x) {
         zipPath = new Waypoint[] {
             new Waypoint(greenTeamStart.x > ZO_G.x ? ZO_G.x + 1 : ZO_G.x - 1, ZO_G.y), ZO_G};
-      } else if (ZO_G.y == ZO_R.y || (ZO_G.x != ZO_R.x && ZO_G.y != ZO_R.y)) {
+      } else if (ZO_G.y == ZC_G.y || (ZO_G.x != ZC_G.x && ZO_G.y != ZC_G.y)) {
         zipPath = new Waypoint[] {
             new Waypoint(ZO_G.x, greenTeamStart.y > ZO_G.y ? ZO_G.y + 1 : ZO_G.y - 1), ZO_G};
       }

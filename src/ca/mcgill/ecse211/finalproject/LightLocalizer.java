@@ -244,14 +244,14 @@ public class LightLocalizer {
 
         if (!left_stopped && !right_stopped) {
           if (forward) {
-            dr.setSpeedLeftMotor(150 + 25 * error_counter++);
-            dr.setSpeedRightMotor(150 + 25 * error_counter++);
+            dr.setSpeedLeftMotor(125 + 25 * error_counter++);
+            dr.setSpeedRightMotor(125 + 25 * error_counter++);
             dr.endlessMoveBackward();
             started_moving_t = System.currentTimeMillis();
             forward = false;
           } else {
-            dr.setSpeedLeftMotor(150 + 25 * error_counter++);
-            dr.setSpeedRightMotor(150 + 25 * error_counter++);
+            dr.setSpeedLeftMotor(125 + 25 * error_counter++);
+            dr.setSpeedRightMotor(125 + 25 * error_counter++);
             dr.endlessMoveForward();
             started_moving_t = System.currentTimeMillis();
             forward = true;
@@ -278,26 +278,6 @@ public class LightLocalizer {
     } catch (Exception e) {
       System.out.println("[ULTRASONIC] Can't sleep thread");
       // TODO: handle exception
-    }
-  }
-
-  private double getReferenceAngle() {
-    double error = 8.0;
-    double theta = Math.toDegrees(odo.getTheta());
-    if (theta + error >= 0 && theta - error <= 0) {
-      return 0;
-    } else if (theta + error >= 360 && theta - error <= 360) {
-      return 0;
-    } else if (theta + error >= 90 && theta - error <= 90) {
-      return 90;
-    } else if (theta + error >= 180 && theta - error <= 180) {
-      return 180;
-    } else if (theta + error >= 270 && theta - error <= 270) {
-      return 270;
-    } else {
-      // Make the robot align to 0.
-      dr.rotate(-theta, false);
-      return 0;
     }
   }
 }

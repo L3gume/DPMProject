@@ -79,10 +79,16 @@ public class SensorPoller extends Thread {
 
       if (this.sd.getUSRefs() > 0) {
         this.usSensor.fetchSample(this.usData, 0);
-        this.sd.ultrasonicHandler(this.usData[0] * 100.0f);
+        this.sd.ultrasonicHandler(this.usData[0] * 100.f);
         ultrasonicZero = false;
       } else {
         ultrasonicZero = true;
+      }
+      
+      if (this.sd.getColorRefs() > 0) {
+        this.lSensorMid.fetchSample(lDataMid, 0);
+        this.sd.colorHandler(this.lDataMid[0] * 100.f);
+        System.out.println(this.lDataMid[0] * 100.f + "," + this.sd.getColorLatest());
       }
       // This code basically bricks the sensors. pls fix
 

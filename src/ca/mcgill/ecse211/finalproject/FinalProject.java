@@ -9,7 +9,9 @@ import lejos.hardware.sensor.EV3ColorSensor;
 import lejos.hardware.sensor.EV3UltrasonicSensor;
 import lejos.hardware.sensor.SensorModes;
 import lejos.robotics.SampleProvider;
+import lejos.robotics.filter.MedianFilter;
 import lejos.robotics.filter.MeanFilter;
+
 
 /**
  * Main class, contains the constants, motors, sensors and the main() method.
@@ -23,7 +25,7 @@ public class FinalProject {
   // --------------------------------------------------------------------------------
 
   // Wifi constants.
-  public static final String SERVER_IP = "192.168.2.3"; // CHANGE THIS TO YOUR COMPUTER'S IP
+  public static final String SERVER_IP = "192.168.43.173"; // CHANGE THIS TO YOUR COMPUTER'S IP
   public static final int TEAM_NB = 6;
   public static final boolean ENABLE_WIFI_DEBUG = false;
   
@@ -106,21 +108,21 @@ public class FinalProject {
     SampleProvider usSampleProvider = usSensor.getMode("Distance");
     SensorModes lsSensorl = new EV3ColorSensor(FinalProject.lsPortl);
     SampleProvider lsSampleProviderl = lsSensorl.getMode("Red");
-    SampleProvider lsMedianl = new MeanFilter(lsSampleProviderl, lsSampleProviderl.sampleSize());
+    SampleProvider lsMedianl = new MedianFilter(lsSampleProviderl, lsSampleProviderl.sampleSize());
     SensorModes lsSensorr = new EV3ColorSensor(FinalProject.lsPortr);
     SampleProvider lsSampleProviderr = lsSensorr.getMode("Red");
-    SampleProvider lsMedianr = new MeanFilter(lsSampleProviderr, lsSampleProviderr.sampleSize());
+    SampleProvider lsMedianr = new MedianFilter(lsSampleProviderr, lsSampleProviderr.sampleSize());
     SensorModes lsSensorm = new EV3ColorSensor(FinalProject.lsPortm);
-    SampleProvider lsSampleProviderm = lsSensorm.getMode("Red");
-    SampleProvider lsMedianm = new MeanFilter(lsSampleProviderm, lsSampleProviderm.sampleSize());
+    SampleProvider lsSampleProviderm = lsSensorm.getMode("RGB");
+    SampleProvider lsMeanm = new MeanFilter(lsSampleProviderm, lsSampleProviderm.sampleSize());
 
 
     // Create SensorData object.
     SensorData sd = new SensorData();
 
     // Create sensorPoller object
-    SensorPoller sensorPoller = new SensorPoller(lsSampleProviderl, 
-    		lsSampleProviderr, lsSampleProviderm, usSampleProvider, sd);
+    SensorPoller sensorPoller = new SensorPoller(lsMedianl, 
+        lsMedianr, lsSampleProviderm, usSampleProvider, sd);
 
 
     // Create Odometer object.
@@ -155,12 +157,13 @@ public class FinalProject {
     dr.setSpeedLeftMotor(SPEED_ROT);
     dr.setSpeedRightMotor(SPEED_ROT);
     
-    // Start data threads.
+    sd.incrementColorRefs();
+    // Start data threads. 
     sensorPoller.start();
-    odometer.start();
-    disp.start();
+    //odometer.start();
+    //disp.start();
 
-    cont.start();
+    ///cont.start();
     
     // Wheel base test
     //dr.rotate(90, false);
