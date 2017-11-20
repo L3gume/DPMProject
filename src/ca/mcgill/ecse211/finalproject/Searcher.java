@@ -5,8 +5,8 @@ import lejos.hardware.Sound;
 
 
 /**
- * A class to search enemy territory for the flag, which is a block of the specified color.
- * The robot will beep three times upon locating the flag, indicating a successful capture.
+ * A class to search enemy territory for the flag, which is a block of the specified color. The
+ * robot will beep three times upon locating the flag, indicating a successful capture.
  *
  * @author Joshua Inscoe
  */
@@ -30,20 +30,16 @@ public class Searcher {
 
   // The direction in which the robot will be moving while following the search path
   public enum Direction {
-    UNKNOWN,
-    CLOCKWISE,
-    COUNTER_CLOCKWISE
+    UNKNOWN, CLOCKWISE, COUNTER_CLOCKWISE
   };
 
   // The possible colors of the enemy flag
   public enum FlagColor {
-    // TODO
+    RED, BLUE, YELLOW, WHITE
   };
 
   // The mapping between the FlagColor enum values and actual color values
-  public static final double[] COLORS = {
-    // TODO
-  };
+  public static final int[] COLORS = {1, 2, 3, 4};
 
 
   // --------------------------------------------------------------------------------
@@ -116,11 +112,8 @@ public class Searcher {
    *
    * @param sd SensorData object to access sensor data
    */
-  public Searcher(
-      Navigator navigator, Driver driver,
-      Waypoint searchLL, Waypoint searchUR, FlagColor color,
-      SensorData sd
-      ) {
+  public Searcher(Navigator navigator, Driver driver, Waypoint searchLL, Waypoint searchUR,
+      FlagColor color, SensorData sd) {
 
     this.navigator = navigator;
 
@@ -132,10 +125,10 @@ public class Searcher {
     this.searchUR = searchUR;
 
     // Convert coordinates from centimeters to tiles.
-    this.xLL = (int)(this.searchLL.x / FinalProject.BOARD_TILE_LENGTH);
-    this.yLL = (int)(this.searchLL.y / FinalProject.BOARD_TILE_LENGTH);
-    this.xUR = (int)(this.searchUR.x / FinalProject.BOARD_TILE_LENGTH);
-    this.yUR = (int)(this.searchUR.y / FinalProject.BOARD_TILE_LENGTH);
+    this.xLL = (int) (this.searchLL.x / FinalProject.BOARD_TILE_LENGTH);
+    this.yLL = (int) (this.searchLL.y / FinalProject.BOARD_TILE_LENGTH);
+    this.xUR = (int) (this.searchUR.x / FinalProject.BOARD_TILE_LENGTH);
+    this.yUR = (int) (this.searchUR.y / FinalProject.BOARD_TILE_LENGTH);
 
     // Compute the length and height of the search zone.
     this.length = Math.abs(this.xUR - this.xLL);
@@ -182,11 +175,11 @@ public class Searcher {
   }
 
   /**
-   * Compute the sequence of coordinates to which the robot should travel
-   * in search of the enemy flag.
+   * Compute the sequence of coordinates to which the robot should travel in search of the enemy
+   * flag.
    *
-   * This should be called after calling the `setLocation()` method.
-   * This should be called before calling the `search()` method.
+   * This should be called after calling the `setLocation()` method. This should be called before
+   * calling the `search()` method.
    */
   public void computeSearchPath() {
 
@@ -198,10 +191,9 @@ public class Searcher {
 
       int pivot = -1;
 
-      Waypoint[] corners = new Waypoint[] {
-        this.waypoints[this.cornerLL], this.waypoints[this.cornerUL],
-        this.waypoints[this.cornerUR], this.waypoints[this.cornerLR]
-      };
+      Waypoint[] corners =
+          new Waypoint[] {this.waypoints[this.cornerLL], this.waypoints[this.cornerUL],
+              this.waypoints[this.cornerUR], this.waypoints[this.cornerLR]};
 
       // Find out which corner of the search zone we are closest to.
       int closestCorner = Searcher.findClosestWaypoint(this.location, corners);
@@ -253,7 +245,7 @@ public class Searcher {
       /*
        * TEMPORARY
        *
-
+       * 
        */
 
       String msg = "error: computeSearchPath(): Unsupported search zone";
@@ -262,8 +254,8 @@ public class Searcher {
       System.exit(1);
 
       /*
-
        *
+       * 
        * ---
        */
     }
@@ -292,8 +284,8 @@ public class Searcher {
     double rotateAngle = 0.0;
 
     // Increment reference counts on sensors.
-    this.sd.incrementSensorRefs(SensorData.SensorID.US_FRONT);
-    this.sd.incrementSensorRefs(SensorData.SensorID.LS_FRONT);
+    this.sd.incrementUSRefs();
+    this.sd.incrementColorRefs();
 
     // Set the angle we will need to rotate in order to make turns around corners
     // and to look inwards toward the search zone.
@@ -317,7 +309,7 @@ public class Searcher {
     // Navigate to each waypoint in the search path.
     for (int i = 0, n = this.path.length; i < n; ++i) {
 
-      this.navigator.setPath(new Waypoint[] { this.path[i] });
+      this.navigator.setPath(new Waypoint[] {this.path[i]});
       this.navigator.process();
 
       // Wait until we have reached the next waypoint.
@@ -357,8 +349,8 @@ public class Searcher {
     }
 
     // Decrement reference counts on sensors.
-    this.sd.decrementSensorRefs(SensorData.SensorID.US_FRONT);
-    this.sd.decrementSensorRefs(SensorData.SensorID.LS_FRONT);
+    this.sd.decrementUSRefs();
+    this.sd.decrementColorRefs();
 
     return found;
   }
@@ -369,13 +361,13 @@ public class Searcher {
   // --------------------------------------------------------------------------------
 
   /**
-   * Compute the coordinates of all tiles surrounding the search zone (even tiles which do not
-   * exist or are unreachable by the robot), and place these waypoints into `waypoints` in
-   * clockwise order, starting from the lower-left corner.
+   * Compute the coordinates of all tiles surrounding the search zone (even tiles which do not exist
+   * or are unreachable by the robot), and place these waypoints into `waypoints` in clockwise
+   * order, starting from the lower-left corner.
    *
-   * This method also initializes the corner indices, as well as the `valid` boolean array,
-   * holding the value of true if a waypoint located at the same index in `waypoints` is
-   * reachable, and false otherwise.
+   * This method also initializes the corner indices, as well as the `valid` boolean array, holding
+   * the value of true if a waypoint located at the same index in `waypoints` is reachable, and
+   * false otherwise.
    */
   private void computeWaypoints() {
 
@@ -405,7 +397,7 @@ public class Searcher {
 
     for (int i = 0; i < this.height; ++i) {
       // We add 0.5 in order to get a coordinate that is the midpoint between two points.
-      y = ((double)(this.yLL + i) + 0.5) * FinalProject.BOARD_TILE_LENGTH;
+      y = ((double) (this.yLL + i) + 0.5) * FinalProject.BOARD_TILE_LENGTH;
 
       waypoints[index] = new Waypoint(x, y);
       valid[index] = reachL;
@@ -424,7 +416,7 @@ public class Searcher {
 
     for (int i = 0; i < this.length; ++i) {
       // We add 0.5 in order to get a coordinate that is the midpoint between two points.
-      x = ((double)(this.xLL + i) + 0.5) * FinalProject.BOARD_TILE_LENGTH;
+      x = ((double) (this.xLL + i) + 0.5) * FinalProject.BOARD_TILE_LENGTH;
 
       waypoints[index] = new Waypoint(x, y);
       valid[index] = reachT;
@@ -443,7 +435,7 @@ public class Searcher {
 
     for (int i = 0; i < this.height; ++i) {
       // We subtract 0.5 in order to get a coordinate that is the midpoint between two points.
-      y = ((double)(this.yUR - i) - 0.5) * FinalProject.BOARD_TILE_LENGTH;
+      y = ((double) (this.yUR - i) - 0.5) * FinalProject.BOARD_TILE_LENGTH;
 
       waypoints[index] = new Waypoint(x, y);
       valid[index] = reachR;
@@ -462,7 +454,7 @@ public class Searcher {
 
     for (int i = 0; i < this.length; ++i) {
       // We subtract 0.5 in order to get a coordinate that is the midpoint between two points.
-      x = ((double)(this.xUR - i) - 0.5) * FinalProject.BOARD_TILE_LENGTH;
+      x = ((double) (this.xUR - i) - 0.5) * FinalProject.BOARD_TILE_LENGTH;
 
       waypoints[index] = new Waypoint(x, y);
       valid[index] = reachB;
@@ -482,8 +474,8 @@ public class Searcher {
   }
 
   /**
-   * Query the SensorData object for data from the front light and ultrasonic sensors to
-   * determine whether or not we are currently looking at the enemy flag.
+   * Query the SensorData object for data from the front light and ultrasonic sensors to determine
+   * whether or not we are currently looking at the enemy flag.
    *
    * @return true if we are looking at the flag, false otherwise
    */
@@ -526,8 +518,8 @@ public class Searcher {
   }
 
   /**
-   * Swap all waypoints before index, `pivot`, with all other starting at `pivot`,
-   * and update the indices of the search zone corners.
+   * Swap all waypoints before index, `pivot`, with all other starting at `pivot`, and update the
+   * indices of the search zone corners.
    *
    * @param pivot the index at which to swap
    */

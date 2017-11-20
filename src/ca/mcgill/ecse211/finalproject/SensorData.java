@@ -375,9 +375,9 @@ public class SensorData {
   }
   
   /**
-   * Get the last color read by the front sensor, as an integer
+   * Get the last color read by the front sensor, as an integer.
    * 
-   * @Return the latest color read by the sensor, as an integer from 1 to 4
+   * @Return the latest color read by the sensor, as an integer from 1 to 4, 0 if not recognized
    */
   public int getColorLatest() {
     int color = 0;
@@ -387,9 +387,9 @@ public class SensorData {
         color = 1; // RED 
       } else if (colorData > 1 && colorData < 8) {
         color = 2; // BLUE
-      } else if (colorData > 15 && colorData < 22) {
+      } else if (colorData > 15 && colorData < 28) {
         color = 3; // YELLOW
-      } else if (colorData > 22 && colorData < 27) {
+      } else if (colorData > 28 && colorData < 40) {
         color = 4; // WHITE
       }
     }
