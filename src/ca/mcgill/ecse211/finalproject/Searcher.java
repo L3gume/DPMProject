@@ -19,6 +19,9 @@ public class Searcher {
   // Sleep interval between checking if next waypoint has been reached
   private static final long WAIT_INTERVAL = 40;
 
+  // Sleep interval to allow sensor data to stabalize
+  private static final long STABALIZE_INTERVAL = 500;
+
   // Sleep interval between beeps
   private static final long BEEP_INTERVAL = 200;
 
@@ -30,6 +33,12 @@ public class Searcher {
 
   // The distance (in tiles) that the robot should stay away from the search zone
   private static final double DISTANCE_TO_SEARCH_ZONE = 0.5;
+
+  // The maximum distance (in centimeters) that the robot will move into the search zone
+  private static final double CAPTURE_DISTANCE_THRESHOLD = 25.0;
+
+  // The amount of acceptable error that is allowed in the flag color readings
+  private static final double COLOR_ERROR = 0.2;
 
   // The direction in which the robot will be moving while following the search path
   public enum Direction {
@@ -380,12 +389,12 @@ public class Searcher {
       // Have we reached a corner ?
       if (i == this.cornerLL || i == this.cornerUL || i == this.cornerUR || i == this.cornerLR) {
 
-        this.driver.rotate(+rotateAngle, false /* = inst_ret */ );
+        this.driver.rotate(+rotateAngle, false /* = inst_ret */);
 
       } else {
 
         // Look inwards toward the search zone.
-        this.driver.rotate(+rotateAngle, false /* = inst_ret */ );
+        this.driver.rotate(+rotateAngle, false /* = inst_ret */);
 
         // Check if we are looking at the flag.
         found = this.checkForFlag();
@@ -398,7 +407,7 @@ public class Searcher {
         }
 
         // Rotate back to original orientation.
-        this.driver.rotate(-rotateAngle, false /* = inst_ret */ );
+        this.driver.rotate(-rotateAngle, false /* = inst_ret */);
       }
     }
 
@@ -535,9 +544,84 @@ public class Searcher {
    */
   private boolean checkForFlag() {
 
-    // TODO
+    float[] usData = null;
 
-    return false;
+    while (usData == null) {
+      try {
+        // Sleep a little bit so that the ultrasonic sensor data has time to stabalize.
+        Thread.sleep(Searcher.STABALIZE_INTERVAL);
+      } catch (Exception e) {
+        // ...
+      }
+
+      // It is unlikely that this will return 'null', but still check.
+      usData = this.sd.getUSData();
+    }
+
+    float distance = 0.0f;
+
+    // Compute the average of the stabalized data value received from the ultrasonic sensor
+    // to detect (1) whether or not there is an obstacle in front of us, and (2) the color of
+    // the obstacle (if any).
+    for (int i = 0, n = usData.length; i < n; ++i) {
+      distance += usData[i];
+    }
+
+    distance /= usData.length;
+
+    if (distance > Searcher.CAPTURE_DISTANCE_THRESHOLD) {
+      // The object (if there even is one) is too far away to be checked.
+      return false;
+    }
+
+    //
+    // NOTE:
+    //
+    // This is necessary because our front-mounted light sensor only returns valid data
+    // when it is very close to the object whose color it is trying to detect.
+    //
+
+    // Move forward, right up to object.
+    this.driver.moveForward(distance, false /* = inst_ret */);
+
+    //
+    // ---
+    //
+
+    float[] llData = null;
+
+    while (llData == null) {
+      try {
+        // Sleep a little bit so that the ultrasonic sensor data has time to stabalize.
+        Thread.sleep(Searcher.STABALIZE_INTERVAL);
+      } catch (Exception e) {
+        // ...
+      }
+
+      // It is unlikely that this will return 'null', but still check.
+      llData = this.sd.getUSData();
+    }
+
+    float color = 0.0f;
+
+    // Compute the average of the stabalized data value received from the light sensor
+    // to get a more accurate value of the color in front of us.
+    for (int i = 0, n = llData.length; i < n; ++i) {
+      color += llData[i];
+    }
+
+    color /= llData.length;
+
+    // Check if color value is too low.
+    if (color < Searcher.COLORS[this.color.ordinal()] - Searcher.COLOR_ERROR) {
+      return false;
+    }
+    // Check if color value is too high.
+    if (color > Searcher.COLORS[this.color.ordinal()] + Searcher.COLOR_ERROR) {
+      return false;
+    }
+
+    return true;
   }
 
   /**
