@@ -35,7 +35,6 @@ public class Searcher {
 
   // The possible colors of the enemy flag
   public enum FlagColor {
-
     NONE, RED, BLUE, YELLOW, WHITE
   };
 
@@ -67,8 +66,8 @@ public class Searcher {
   private int yUR;
 
   // The length and height of the search zone
-  private int length;
-  private int height;
+  private double length;
+  private double height;
 
   // The total number of waypoints (i.e. tiles surrounding the search zone)
   private int wpCount;
@@ -207,17 +206,17 @@ public class Searcher {
   public void computeSearchPath() {
 
     // Convert coordinates from centimeters to tiles.
-    this.xLL = (int)(this.searchLL.x / FinalProject.BOARD_TILE_LENGTH);
-    this.yLL = (int)(this.searchLL.y / FinalProject.BOARD_TILE_LENGTH);
-    this.xUR = (int)(this.searchUR.x / FinalProject.BOARD_TILE_LENGTH);
-    this.yUR = (int)(this.searchUR.y / FinalProject.BOARD_TILE_LENGTH);
+//    this.xLL = (int)(this.searchLL.x / FinalProject.BOARD_TILE_LENGTH);
+//    this.yLL = (int)(this.searchLL.y / FinalProject.BOARD_TILE_LENGTH);
+//    this.xUR = (int)(this.searchUR.x / FinalProject.BOARD_TILE_LENGTH);
+//    this.yUR = (int)(this.searchUR.y / FinalProject.BOARD_TILE_LENGTH);
 
     // Compute the length and height of the search zone.
-    this.length = Math.abs(this.xUR - this.xLL);
-    this.height = Math.abs(this.yUR - this.yLL);
+    this.length = Math.abs(this.searchUR.x - this.searchLL.x);
+    this.height = Math.abs(this.searchUR.y - this.searchLL.y);
 
     // Compute the total number of tiles surrounding the search zone.
-    this.wpCount = (2 * this.length) + (2 * this.height) + 4;
+    this.wpCount = (int) ((2 * this.length) + (2 * this.height) + 4);
 
     //
     // NOTE:
@@ -442,10 +441,10 @@ public class Searcher {
     boolean[] valid = new boolean[this.wpCount];
 
     // Indicators signaling whether or not each side of the search zone is reachable
-    boolean reachL = (this.xLL > Searcher.LOWER_LIMIT_X);
-    boolean reachT = (this.yUR < Searcher.UPPER_LIMIT_Y);
-    boolean reachR = (this.xUR < Searcher.UPPER_LIMIT_X);
-    boolean reachB = (this.yLL > Searcher.LOWER_LIMIT_Y);
+    boolean reachL = (this.searchLL.x > Searcher.LOWER_LIMIT_X);
+    boolean reachT = (this.searchUR.y < Searcher.UPPER_LIMIT_Y);
+    boolean reachR = (this.searchUR.x < Searcher.UPPER_LIMIT_X);
+    boolean reachB = (this.searchLL.y > Searcher.LOWER_LIMIT_Y);
 
     int index = 0;
 
@@ -552,7 +551,10 @@ public class Searcher {
     int target_color = MainController.is_red ? MainController.OR : MainController.OG;
     int cur_color = sd.getColorDataLatest();
     
-    
+    if (cur_color != -1 && cur_color == COLORS[target_color]) {
+      return true;
+    }
+       
     sd.decrementColorRefs();
     return false;
   }

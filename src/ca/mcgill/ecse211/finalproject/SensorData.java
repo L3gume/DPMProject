@@ -435,7 +435,7 @@ public class SensorData {
    */
   public int incrementColorRefs() {
     int refs;
-    synchronized (colorData) {
+    synchronized (colorRefsLock) {
       refs = ++this.colorRefs;
     }
     return refs;
@@ -470,7 +470,7 @@ public class SensorData {
    */
   public int decrementColorRefs() {
     int refs;
-    synchronized (colorData) {
+    synchronized (colorRefsLock) {
       refs = --this.colorRefs;
     }
     return refs;

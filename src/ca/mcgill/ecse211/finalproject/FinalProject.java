@@ -135,7 +135,7 @@ public class FinalProject {
     LightLocalizer ll = new LightLocalizer(dr, odometer, sd);
     Localizer loc = new Localizer(ul, ll, dr);   
     Navigator nav = new Navigator(dr, odometer, sd);
-    Searcher srch = new Searcher(navigator, driver, sd);
+    Searcher srch = new Searcher(nav, dr, sd);
     ZipLine zip = new ZipLine(zipMotor,odometer, dr, sd);
 
     // Create MainController object.
@@ -147,12 +147,17 @@ public class FinalProject {
     dr.setSpeedRightMotor(SPEED_ROT);
     
     sd.incrementColorRefs();
-    // Start data threads. 
+    // Start data threads.
     sensorPoller.start();
     //odometer.start();
     //disp.start();
 
-    ///cont.start();
+    //cont.start();
+    
+    // search path generation test
+    srch.setLocation(new Waypoint(4, 4));
+    srch.setSearchZone(new Waypoint(5, 6), new Waypoint(7, 7));
+    srch.computeSearchPath();
     
     // Wheel base test
     //dr.rotate(90, false);
