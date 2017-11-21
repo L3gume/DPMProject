@@ -87,22 +87,22 @@ public class SensorPoller extends Thread {
       
       if (this.sd.getColorRefs() > 0) {
         this.lSensorMid.fetchSample(lDataMid, 0);
-        this.sd.colorHandler(this.lDataMid[0] * 100.f);
-        String color = "NONE";
-        if (this.sd.getColorLatest() == 1) {
-          color = "RED";
-        }
-        if (this.sd.getColorLatest() == 2) {
-          color = "BLUE";
-        }
-        if (this.sd.getColorLatest() == 3) {
-          color = "YELLOW";
-        }
-        if (this.sd.getColorLatest() == 4) {
-          color = "WHITE";
-        }
+        this.sd.colorHandler((int)this.lDataMid[0]);
+//        String color = "NONE";
+//        if (this.sd.getColorLatest() == 1) {
+//          color = "RED";
+//        }
+//        if (this.sd.getColorLatest() == 2) {
+//          color = "BLUE";
+//        }
+//        if (this.sd.getColorLatest() == 3) {
+//          color = "YELLOW";
+//        }
+//        if (this.sd.getColorLatest() == 4) {
+//          color = "WHITE";
+//        }
         
-        System.out.println(this.lDataMid[0] * 100.f + "," + color + "," + this.sd.getColorDataLatest());
+        System.out.println(this.lDataMid[0]);
       }
       // This code basically bricks the sensors. pls fix
 

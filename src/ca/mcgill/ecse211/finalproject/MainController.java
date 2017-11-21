@@ -392,13 +392,13 @@ public class MainController extends Thread {
           redTeamStart = new Waypoint(1, 1);
           break;
         case 1:
-          redTeamStart = new Waypoint(7, 1);
+          redTeamStart = new Waypoint(11, 1);
           break;
         case 2:
-          redTeamStart = new Waypoint(7, 7);
+          redTeamStart = new Waypoint(11, 11);
           break;
         case 3:
-          redTeamStart = new Waypoint(1, 7);
+          redTeamStart = new Waypoint(1, 11);
           break;
       }
 
@@ -407,13 +407,13 @@ public class MainController extends Thread {
           greenTeamStart = new Waypoint(1, 1);
           break;
         case 1:
-          greenTeamStart = new Waypoint(7, 1);
+          greenTeamStart = new Waypoint(11, 1);
           break;
         case 2:
-          greenTeamStart = new Waypoint(7, 7);
+          greenTeamStart = new Waypoint(11, 11);
           break;
         case 3:
-          greenTeamStart = new Waypoint(1, 7);
+          greenTeamStart = new Waypoint(1, 11);
           break;
       }
 

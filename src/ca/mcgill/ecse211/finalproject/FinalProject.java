@@ -113,7 +113,7 @@ public class FinalProject {
     SampleProvider lsSampleProviderr = lsSensorr.getMode("Red");
     SampleProvider lsMedianr = new MedianFilter(lsSampleProviderr, lsSampleProviderr.sampleSize());
     SensorModes lsSensorm = new EV3ColorSensor(FinalProject.lsPortm);
-    SampleProvider lsSampleProviderm = lsSensorm.getMode("RGB");
+    SampleProvider lsSampleProviderm = lsSensorm.getMode("ColorID");
     SampleProvider lsMeanm = new MeanFilter(lsSampleProviderm, lsSampleProviderm.sampleSize());
 
 

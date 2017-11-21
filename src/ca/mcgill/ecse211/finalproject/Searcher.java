@@ -45,7 +45,7 @@ public class Searcher {
   // --------------------------------------------------------------------------------
   // Variables
   // --------------------------------------------------------------------------------
-
+ 
   // Navigator object for controlling robot navigation
   private Navigator navigator;
 
@@ -480,9 +480,13 @@ public class Searcher {
    * @return true if we are looking at the flag, false otherwise
    */
   private boolean checkForFlag() {
-
-    // TODO
-
+    sd.incrementColorRefs();
+    
+    int target_color = MainController.is_red ? MainController.OR : MainController.OG;
+    int cur_color = sd.getColorDataLatest();
+    
+    
+    sd.decrementColorRefs();
     return false;
   }
 

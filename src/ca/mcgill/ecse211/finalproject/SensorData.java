@@ -32,7 +32,7 @@ public class SensorData {
   // Circular arrays holding the original sensor data
   private float llData1[];
   private float llData2[];
-  private float colorData[];
+  private int colorData[];
   private float usData[];
 
   // Circular arrays holding the derivative of the sensor data
@@ -71,7 +71,7 @@ public class SensorData {
 
     this.llData1 = new float[LL_DATA_SIZE];
     this.llData2 = new float[LL_DATA_SIZE];
-    this.colorData = new float[LL_DATA_SIZE];
+    this.colorData = new int[LL_DATA_SIZE];
     this.usData = new float[US_DATA_SIZE];
     this.llDataDeriv1 = new float[LL_DATA_SIZE];
     this.llDataDeriv2 = new float[LL_DATA_SIZE];
@@ -162,7 +162,7 @@ public class SensorData {
    * 
    * @param value the RGB value read by the front color sensor.
    */
-  public void colorHandler(float value) {
+  public void colorHandler(int value) {
     synchronized (colorDataLock) {
       this.colorData[colorIndex] = value;
       this.colorIndex++;
@@ -366,34 +366,12 @@ public class SensorData {
    * 
    * @return the latest RGB value polled from the front color sensor.
    */
-  public float getColorDataLatest() {
-    float val;
+  public int getColorDataLatest() {
+    int val;
     synchronized (this.colorDataLock) {
       val = this.colorData[(this.colorIndex - 1 + COLOR_DATA_SIZE) % COLOR_DATA_SIZE];
     }
     return val;
-  }
-  
-  /**
-   * Get the last color read by the front sensor, as an integer.
-   * 
-   * @Return the latest color read by the sensor, as an integer from 1 to 4, 0 if not recognized
-   */
-  public int getColorLatest() {
-    int color = 0;
-    synchronized (colorDataLock) {
-      float colorData = this.colorData[(this.colorIndex - 1 + COLOR_DATA_SIZE) % COLOR_DATA_SIZE];
-      if (colorData > 9 && colorData < 17) {
-        color = 1; // RED 
-      } else if (colorData > 1 && colorData < 8) {
-        color = 2; // BLUE
-      } else if (colorData > 15 && colorData < 28) {
-        color = 3; // YELLOW
-      } else if (colorData > 28 && colorData < 40) {
-        color = 4; // WHITE
-      }
-    }
-    return color;
   }
   
   /**
