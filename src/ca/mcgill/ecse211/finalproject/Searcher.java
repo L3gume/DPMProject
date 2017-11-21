@@ -271,6 +271,9 @@ public class Searcher {
 
       this.path = this.waypoints;
 
+      boolean test = this.path == null;
+      System.out.println(test);
+      
       this.direction = Direction.CLOCKWISE;
 
     } else {
@@ -300,8 +303,8 @@ public class Searcher {
 
     // --- DEBUG ---
 
-    for (int i = 0, n = this.path.length; i < n; ++i) {
-      System.out.println("{ " + this.path[i].x + ", " + this.path[i].y + " }");
+    for (int i = 0; i < this.path.length; i++) {
+      System.out.println("[ " + this.path[i].x + ", " + this.path[i].y + " ]");
     }
 
     // --- DEBUG ---
@@ -530,8 +533,6 @@ public class Searcher {
     this.reachSideB = reachB;
 
     this.valid = valid;
-
-    return;
   }
 
   /**
@@ -541,7 +542,6 @@ public class Searcher {
    * @return true if we are looking at the flag, false otherwise
    */
   private boolean checkForFlag() {
-    this.sd.incrementColorRefs();
     float[] usData = null;
 
     while (usData == null) {
@@ -586,9 +586,9 @@ public class Searcher {
     // ---
     //
 
-    float[] llData = null;
-
-    while (llData == null) {
+//    float[] llData = null;
+    float sensor_color = -1;
+    while (sensor_color == -1) {
       try {
         // Sleep a little bit so that the ultrasonic sensor data has time to stabalize.
         Thread.sleep(Searcher.STABALIZE_INTERVAL);
@@ -597,30 +597,32 @@ public class Searcher {
       }
 
       // It is unlikely that this will return 'null', but still check.
-      llData = this.sd.getUSData();
+      sensor_color = this.sd.getColorDataLatest();
     }
 
-    float color = 0.0f;
-
-    // Compute the average of the stabalized data value received from the light sensor
-    // to get a more accurate value of the color in front of us.
-    for (int i = 0, n = llData.length; i < n; ++i) {
-      color += llData[i];
-    }
-
-    color /= llData.length;
+//    float color = 0.0f;
+//
+//    // Compute the average of the stabalized data value received from the light sensor
+//    // to get a more accurate value of the color in front of us.
+//    for (int i = 0, n = llData.length; i < n; ++i) {
+//      color += llData[i];
+//    }
+//
+//    color /= llData.length;
 
     // Check if color value is too low.
-    if (color < Searcher.COLORS[this.color.ordinal()] - Searcher.COLOR_ERROR) {
-      return false;
+//    if (color < Searcher.COLORS[this.color.ordinal()] - Searcher.COLOR_ERROR) {
+//      return false;
+//    }
+//    // Check if color value is too high.
+//    if (color > Searcher.COLORS[this.color.ordinal()] + Searcher.COLOR_ERROR) {
+//      return false;
+//    }
+    
+    if (sensor_color != -1 && Searcher.COLORS[MainController.is_red ? MainController.OR : MainController.OG] == sensor_color) {
+      return true;
     }
-    // Check if color value is too high.
-    if (color > Searcher.COLORS[this.color.ordinal()] + Searcher.COLOR_ERROR) {
-      return false;
-    }
-
-    this.sd.decrementColorRefs();
-    return true;
+    return false;
   }
 
   /**
@@ -662,14 +664,14 @@ public class Searcher {
    */
   private void shiftWaypoints(int pivot) {
 
-    waypoints = new Waypoint[this.wpCount];
+    Waypoint temp_waypoints[] = new Waypoint[this.wpCount];
 
     // Swap all waypoints before index, `pivot`, with all those starting at `pivot`.
     for (int i = 0; i < this.wpCount; ++i) {
-      waypoints[i] = this.waypoints[(pivot + i) % this.wpCount];
+      temp_waypoints[i] = this.waypoints[(pivot + i) % this.wpCount];
     }
 
-    this.waypoints = waypoints;
+    this.waypoints = temp_waypoints;
 
     // Update the indices of the search zone corners.
     this.cornerLL = ((this.cornerLL - pivot) + this.wpCount) % this.wpCount;

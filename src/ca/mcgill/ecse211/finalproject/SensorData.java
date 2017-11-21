@@ -364,7 +364,7 @@ public class SensorData {
   /**
    * Get the latest value polled from the front color sensor.
    * 
-   * @return the latest RGB value polled from the front color sensor.
+   * @return the latest color ID value polled from the front color sensor.
    */
   public int getColorDataLatest() {
     int val;

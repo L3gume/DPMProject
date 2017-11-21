@@ -432,6 +432,9 @@ public class MainController extends Thread {
     } catch (Exception e) {
       System.err.println("Error: " + e.getMessage());
       e.printStackTrace();
+      
+      // TODO: emergency localization procedure to get some points!!!!
+      
       System.exit(1);
     }
   }
