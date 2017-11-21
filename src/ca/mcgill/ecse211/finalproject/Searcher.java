@@ -17,7 +17,7 @@ public class Searcher {
   // --------------------------------------------------------------------------------
 
   // Sleep interval between checking if next waypoint has been reached
-  private static final long WAIT_INTERVAL = 1000;
+  private static final long WAIT_INTERVAL = 40;
 
   // Sleep interval between beeps
   private static final long BEEP_INTERVAL = 200;
@@ -37,13 +37,11 @@ public class Searcher {
 
   // The possible colors of the enemy flag
   public enum FlagColor {
-    // TODO
+    NONE, RED, BLUE, YELLOW, WHITE
   };
 
   // The mapping between the FlagColor enum values and actual color values
-  public static final double[] COLORS = {
-    // TODO
-  };
+  public static final float[] COLORS = { -1.0f, 0.0f, 7.0f, 3.0f, 6.0f };
 
 
   // --------------------------------------------------------------------------------
@@ -116,43 +114,41 @@ public class Searcher {
    *
    * @param sd SensorData object to access sensor data
    */
-  public Searcher(
-      Navigator navigator, Driver driver,
-      Waypoint searchLL, Waypoint searchUR, FlagColor color,
-      SensorData sd
-      ) {
+  public Searcher(Navigator navigator, Driver driver, SensorData sd) {
 
     this.navigator = navigator;
 
     this.driver = driver;
 
     this.location = new Waypoint(-1.0, -1.0);
+    this.searchLL = new Waypoint(-1.0, -1.0);
+    this.searchUR = new Waypoint(-1.0, -1.0);
 
-    this.searchLL = searchLL;
-    this.searchUR = searchUR;
+    this.xLL = -1;
+    this.yLL = -1;
+    this.xUR = -1;
+    this.yUR = -1;
 
-    // Convert coordinates from centimeters to tiles.
-    this.xLL = (int)(this.searchLL.x / FinalProject.BOARD_TILE_LENGTH);
-    this.yLL = (int)(this.searchLL.y / FinalProject.BOARD_TILE_LENGTH);
-    this.xUR = (int)(this.searchUR.x / FinalProject.BOARD_TILE_LENGTH);
-    this.yUR = (int)(this.searchUR.y / FinalProject.BOARD_TILE_LENGTH);
+    this.length = -1;
+    this.height = -1;
 
-    // Compute the length and height of the search zone.
-    this.length = Math.abs(this.xUR - this.xLL);
-    this.height = Math.abs(this.yUR - this.yLL);
+    this.wpCount = -1;
 
-    // Compute the total number of tiles surrounding the search zone.
-    this.wpCount = (2 * this.length) + (2 * this.height) + 4;
+    this.waypoints = null;
 
-    //
-    // NOTE:
-    //
-    // This must be called after setting the `[xy]LL/UR` and `length` and `height` variables.
-    // Calling it before will result in undefined behaviour.
-    //
-    this.computeWaypoints();
+    this.reachSideL = false;
+    this.reachSideT = false;
+    this.reachSideR = false;
+    this.reachSideB = false;
 
-    this.color = color;
+    this.valid = null;
+
+    this.cornerLL = -1;
+    this.cornerUL = -1;
+    this.cornerUR = -1;
+    this.cornerLR = -1;
+
+    this.color = FlagColor.NONE;
 
     this.sd = sd;
 
@@ -182,13 +178,54 @@ public class Searcher {
   }
 
   /**
+   * Set the coordinates of the search zone.
+   *
+   * This should be called before calling the `computeSearchPath()` method.
+   *
+   * @param searchLL the lower-left corner of the search zone
+   * @param searchUR the upper-right corner of the search zone
+   */
+  public void setSearchZone(Waypoint searchLL, Waypoint searchUR) {
+
+    this.searchLL.x = searchLL.x;
+    this.searchLL.y = searchLL.y;
+
+    this.searchUR.x = searchUR.x;
+    this.searchUR.y = searchUR.y;
+
+    return;
+  }
+
+  /**
    * Compute the sequence of coordinates to which the robot should travel
    * in search of the enemy flag.
    *
    * This should be called after calling the `setLocation()` method.
+   * This should be called after calling the `setSearchZone()` method.
    * This should be called before calling the `search()` method.
    */
   public void computeSearchPath() {
+
+    // Convert coordinates from centimeters to tiles.
+    this.xLL = (int)(this.searchLL.x / FinalProject.BOARD_TILE_LENGTH);
+    this.yLL = (int)(this.searchLL.y / FinalProject.BOARD_TILE_LENGTH);
+    this.xUR = (int)(this.searchUR.x / FinalProject.BOARD_TILE_LENGTH);
+    this.yUR = (int)(this.searchUR.y / FinalProject.BOARD_TILE_LENGTH);
+
+    // Compute the length and height of the search zone.
+    this.length = Math.abs(this.xUR - this.xLL);
+    this.height = Math.abs(this.yUR - this.yLL);
+
+    // Compute the total number of tiles surrounding the search zone.
+    this.wpCount = (2 * this.length) + (2 * this.height) + 4;
+
+    //
+    // NOTE:
+    //
+    // This must be called after setting the `[xy]LL/UR` and `length` and `height` variables.
+    // Calling it before will result in undefined behaviour.
+    //
+    this.computeWaypoints();
 
     // Are all sides reachable ?
     if (this.reachSideL && this.reachSideT && this.reachSideR && this.reachSideB) {
@@ -268,6 +305,14 @@ public class Searcher {
        */
     }
 
+    // --- DEBUG ---
+
+    for (int i = 0, n = this.path.length; i < n; ++i) {
+      System.out.println("{ " + this.path[i].x + ", " + this.path[i].y + " }");
+    }
+
+    // --- DEBUG ---
+
     // Remove references to all unreachable waypoints, thus allowing the
     // garbage collector to free up any unused memory.
     this.waypoints = null;
@@ -279,11 +324,26 @@ public class Searcher {
   }
 
   /**
+   * Set the color of the enemy flag.
+   *
+   * This should be called before calling the `search()` method.
+   *
+   * @param color the color of the enemy flag
+   */
+  public void setFlagColor(FlagColor color) {
+
+    this.color = color;
+
+    return;
+  }
+
+  /**
    * Search enemy territory for the flag.
    *
    * This should be caled after calling the `computeSearchPath()` method.
+   * This should be called after calling the `setFlagColor()` method.
    *
-   * @return true if the flag was successfully "captured" the flag, false otherwise
+   * @return true if the flag was successfully "captured", false otherwise
    */
   public boolean search() {
 
@@ -292,8 +352,8 @@ public class Searcher {
     double rotateAngle = 0.0;
 
     // Increment reference counts on sensors.
-    this.sd.incrementSensorRefs(SensorData.SensorID.US_FRONT);
-    this.sd.incrementSensorRefs(SensorData.SensorID.LS_FRONT);
+    this.sd.incrementLLRefs();
+    this.sd.incrementUSRefs();
 
     // Set the angle we will need to rotate in order to make turns around corners
     // and to look inwards toward the search zone.
@@ -318,10 +378,10 @@ public class Searcher {
     for (int i = 0, n = this.path.length; i < n; ++i) {
 
       this.navigator.setPath(new Waypoint[] { this.path[i] });
-      this.navigator.process();
 
       // Wait until we have reached the next waypoint.
       while (!this.navigator.isDone()) {
+        this.navigator.process();
         try {
           // Sleep a little bit to yield processor to other threads while waiting
           // for the Navigator to finish navigating to the next waypoint.
@@ -357,8 +417,8 @@ public class Searcher {
     }
 
     // Decrement reference counts on sensors.
-    this.sd.decrementSensorRefs(SensorData.SensorID.US_FRONT);
-    this.sd.decrementSensorRefs(SensorData.SensorID.LS_FRONT);
+    this.sd.decrementLLRefs();
+    this.sd.decrementUSRefs();
 
     return found;
   }

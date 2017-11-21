@@ -133,22 +133,11 @@ public class FinalProject {
     LightLocalizer ll = new LightLocalizer(dr, odometer, sd);
     Localizer loc = new Localizer(ul, ll, dr);   
     Navigator nav = new Navigator(dr, odometer, sd);
+    Searcher srch = new Searcher(navigator, driver, sd);
     ZipLine zip = new ZipLine(zipMotor,odometer, dr, sd);
 
-    //
-    // TODO:
-    //
-    //
-    // Construct the following objects:
-    //
-    // UltrasonicLocalizer
-    // LightLocalizer
-    // Navigator
-    // ZipLine
-    //
-
     // Create MainController object.
-    MainController cont = new MainController(loc, ul, ll, nav, zip, null);
+    MainController cont = new MainController(loc, ul, ll, nav, zip, srch);
     // TODO: remove display during demo/competition
     Display disp = new Display(LocalEV3.get().getTextLCD(), odometer, cont, sd, sensorPoller);
 
