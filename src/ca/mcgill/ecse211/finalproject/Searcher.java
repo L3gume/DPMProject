@@ -19,14 +19,26 @@ public class Searcher {
   // Sleep interval between checking if next waypoint has been reached
   private static final long WAIT_INTERVAL = 40;
 
+  // Sleep interval to allow sensor data to stabalize
+  private static final long STABALIZE_INTERVAL = 500;
+
   // Sleep interval between beeps
   private static final long BEEP_INTERVAL = 200;
 
   // Lower and upper limits on waypoint values (in tiles) [non-inclusive]
-  private static final int LOWER_LIMIT_X = 1;
-  private static final int LOWER_LIMIT_Y = 1;
-  private static final int UPPER_LIMIT_X = 11;
-  private static final int UPPER_LIMIT_Y = 11;
+  private static final double LOWER_LIMIT_X = 1.0;
+  private static final double LOWER_LIMIT_Y = 1.0;
+  private static final double UPPER_LIMIT_X = 11.0;
+  private static final double UPPER_LIMIT_Y = 11.0;
+
+  // The distance (in tiles) that the robot should stay away from the search zone
+  private static final double DISTANCE_TO_SEARCH_ZONE = 0.5;
+
+  // The maximum distance (in centimeters) that the robot will move into the search zone
+  private static final double CAPTURE_DISTANCE_THRESHOLD = 25.0;
+
+  // The amount of acceptable error that is allowed in the flag color readings
+  private static final double COLOR_ERROR = 0.2;
 
   // The direction in which the robot will be moving while following the search path
   public enum Direction {
@@ -55,15 +67,9 @@ public class Searcher {
   // The current location of the robot
   private Waypoint location;
 
-  // The lower-left and upper-right corners of the search zone (in centimters)
+  // The lower-left and upper-right corners of the search zone (in tiles)
   private Waypoint searchLL;
   private Waypoint searchUR;
-
-  // The lower-left and upper-right corners of the search zone (in tiles)
-  private int xLL;
-  private int yLL;
-  private int xUR;
-  private int yUR;
 
   // The length and height of the search zone
   private double length;
@@ -122,11 +128,6 @@ public class Searcher {
     this.location = new Waypoint(-1.0, -1.0);
     this.searchLL = new Waypoint(-1.0, -1.0);
     this.searchUR = new Waypoint(-1.0, -1.0);
-
-    this.xLL = -1;
-    this.yLL = -1;
-    this.xUR = -1;
-    this.yUR = -1;
 
     this.length = -1;
     this.height = -1;
@@ -205,15 +206,9 @@ public class Searcher {
    */
   public void computeSearchPath() {
 
-    // Convert coordinates from centimeters to tiles.
-//    this.xLL = (int)(this.searchLL.x / FinalProject.BOARD_TILE_LENGTH);
-//    this.yLL = (int)(this.searchLL.y / FinalProject.BOARD_TILE_LENGTH);
-//    this.xUR = (int)(this.searchUR.x / FinalProject.BOARD_TILE_LENGTH);
-//    this.yUR = (int)(this.searchUR.y / FinalProject.BOARD_TILE_LENGTH);
-
     // Compute the length and height of the search zone.
-    this.length = Math.abs(this.searchUR.x - this.searchLL.x);
-    this.height = Math.abs(this.searchUR.y - this.searchLL.y);
+    this.length = Math.abs((int)this.searchUR.x - (int)this.searchLL.x);
+    this.height = Math.abs((int)this.searchUR.y - (int)this.searchLL.y);
 
     // Compute the total number of tiles surrounding the search zone.
     this.wpCount = (int) ((2 * this.length) + (2 * this.height) + 4);
@@ -392,12 +387,12 @@ public class Searcher {
       // Have we reached a corner ?
       if (i == this.cornerLL || i == this.cornerUL || i == this.cornerUR || i == this.cornerLR) {
 
-        this.driver.rotate(+rotateAngle, false /* = inst_ret */ );
+        this.driver.rotate(+rotateAngle, false /* = inst_ret */);
 
       } else {
 
         // Look inwards toward the search zone.
-        this.driver.rotate(+rotateAngle, false /* = inst_ret */ );
+        this.driver.rotate(+rotateAngle, false /* = inst_ret */);
 
         // Check if we are looking at the flag.
         found = this.checkForFlag();
@@ -410,7 +405,7 @@ public class Searcher {
         }
 
         // Rotate back to original orientation.
-        this.driver.rotate(-rotateAngle, false /* = inst_ret */ );
+        this.driver.rotate(-rotateAngle, false /* = inst_ret */);
       }
     }
 
@@ -459,11 +454,11 @@ public class Searcher {
     this.cornerLL = index;
 
     // Compute the left-side waypoints.
-    x = this.searchLL.x - FinalProject.BOARD_TILE_LENGTH;
+    x = this.searchLL.x - Searcher.DISTANCE_TO_SEARCH_ZONE;
 
     for (int i = 0; i < this.height; ++i) {
       // We add 0.5 in order to get a coordinate that is the midpoint between two points.
-      y = ((double) (this.yLL + i) + 0.5) * FinalProject.BOARD_TILE_LENGTH;
+      y = this.searchLL.y + i + 0.5;
 
       waypoints[index] = new Waypoint(x, y);
       valid[index] = reachL;
@@ -478,11 +473,11 @@ public class Searcher {
     this.cornerUL = index;
 
     // Compute the top-side waypoints.
-    y = this.searchUR.y + FinalProject.BOARD_TILE_LENGTH;
+    y = this.searchUR.y + Searcher.DISTANCE_TO_SEARCH_ZONE;
 
     for (int i = 0; i < this.length; ++i) {
       // We add 0.5 in order to get a coordinate that is the midpoint between two points.
-      x = ((double) (this.xLL + i) + 0.5) * FinalProject.BOARD_TILE_LENGTH;
+      x = this.searchLL.x + i + 0.5;
 
       waypoints[index] = new Waypoint(x, y);
       valid[index] = reachT;
@@ -497,11 +492,11 @@ public class Searcher {
     this.cornerUR = index;
 
     // Compute the right-side waypoints.
-    x = this.searchUR.x + FinalProject.BOARD_TILE_LENGTH;
+    x = this.searchUR.x + Searcher.DISTANCE_TO_SEARCH_ZONE;
 
     for (int i = 0; i < this.height; ++i) {
       // We subtract 0.5 in order to get a coordinate that is the midpoint between two points.
-      y = ((double) (this.yUR - i) - 0.5) * FinalProject.BOARD_TILE_LENGTH;
+      y = this.searchUR.y - i - 0.5;
 
       waypoints[index] = new Waypoint(x, y);
       valid[index] = reachR;
@@ -516,11 +511,11 @@ public class Searcher {
     this.cornerLR = index;
 
     // Compute the bottom-side waypoints.
-    y = this.searchLL.y - FinalProject.BOARD_TILE_LENGTH;
+    y = this.searchLL.y - Searcher.DISTANCE_TO_SEARCH_ZONE;
 
     for (int i = 0; i < this.length; ++i) {
       // We subtract 0.5 in order to get a coordinate that is the midpoint between two points.
-      x = ((double) (this.xUR - i) - 0.5) * FinalProject.BOARD_TILE_LENGTH;
+      x = this.searchUR.x - i - 0.5;
 
       waypoints[index] = new Waypoint(x, y);
       valid[index] = reachB;
@@ -546,17 +541,86 @@ public class Searcher {
    * @return true if we are looking at the flag, false otherwise
    */
   private boolean checkForFlag() {
-    sd.incrementColorRefs();
-    
-    int target_color = MainController.is_red ? MainController.OR : MainController.OG;
-    int cur_color = sd.getColorDataLatest();
-    
-    if (cur_color != -1 && cur_color == COLORS[target_color]) {
-      return true;
+    this.sd.incrementColorRefs();
+    float[] usData = null;
+
+    while (usData == null) {
+      try {
+        // Sleep a little bit so that the ultrasonic sensor data has time to stabalize.
+        Thread.sleep(Searcher.STABALIZE_INTERVAL);
+      } catch (Exception e) {
+        // ...
+      }
+
+      // It is unlikely that this will return 'null', but still check.
+      usData = this.sd.getUSData();
     }
-       
-    sd.decrementColorRefs();
-    return false;
+
+    float distance = 0.0f;
+
+    // Compute the average of the stabalized data value received from the ultrasonic sensor
+    // to detect (1) whether or not there is an obstacle in front of us, and (2) the color of
+    // the obstacle (if any).
+    for (int i = 0, n = usData.length; i < n; ++i) {
+      distance += usData[i];
+    }
+
+    distance /= usData.length;
+
+    if (distance > Searcher.CAPTURE_DISTANCE_THRESHOLD) {
+      // The object (if there even is one) is too far away to be checked.
+      return false;
+    }
+
+    //
+    // NOTE:
+    //
+    // This is necessary because our front-mounted light sensor only returns valid data
+    // when it is very close to the object whose color it is trying to detect.
+    //
+
+    // Move forward, right up to object.
+    this.driver.moveForward(distance, false /* = inst_ret */);
+
+    //
+    // ---
+    //
+
+    float[] llData = null;
+
+    while (llData == null) {
+      try {
+        // Sleep a little bit so that the ultrasonic sensor data has time to stabalize.
+        Thread.sleep(Searcher.STABALIZE_INTERVAL);
+      } catch (Exception e) {
+        // ...
+      }
+
+      // It is unlikely that this will return 'null', but still check.
+      llData = this.sd.getUSData();
+    }
+
+    float color = 0.0f;
+
+    // Compute the average of the stabalized data value received from the light sensor
+    // to get a more accurate value of the color in front of us.
+    for (int i = 0, n = llData.length; i < n; ++i) {
+      color += llData[i];
+    }
+
+    color /= llData.length;
+
+    // Check if color value is too low.
+    if (color < Searcher.COLORS[this.color.ordinal()] - Searcher.COLOR_ERROR) {
+      return false;
+    }
+    // Check if color value is too high.
+    if (color > Searcher.COLORS[this.color.ordinal()] + Searcher.COLOR_ERROR) {
+      return false;
+    }
+
+    this.sd.decrementColorRefs();
+    return true;
   }
 
   /**
