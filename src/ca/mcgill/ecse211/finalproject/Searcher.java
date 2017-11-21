@@ -23,10 +23,13 @@ public class Searcher {
   private static final long BEEP_INTERVAL = 200;
 
   // Lower and upper limits on waypoint values (in tiles) [non-inclusive]
-  private static final int LOWER_LIMIT_X = 1;
-  private static final int LOWER_LIMIT_Y = 1;
-  private static final int UPPER_LIMIT_X = 11;
-  private static final int UPPER_LIMIT_Y = 11;
+  private static final double LOWER_LIMIT_X = 1.0;
+  private static final double LOWER_LIMIT_Y = 1.0;
+  private static final double UPPER_LIMIT_X = 11.0;
+  private static final double UPPER_LIMIT_Y = 11.0;
+
+  // The distance (in tiles) that the robot should stay away from the search zone
+  private static final double DISTANCE_TO_SEARCH_ZONE = 0.5;
 
   // The direction in which the robot will be moving while following the search path
   public enum Direction {
@@ -57,15 +60,9 @@ public class Searcher {
   // The current location of the robot
   private Waypoint location;
 
-  // The lower-left and upper-right corners of the search zone (in centimters)
+  // The lower-left and upper-right corners of the search zone (in tiles)
   private Waypoint searchLL;
   private Waypoint searchUR;
-
-  // The lower-left and upper-right corners of the search zone (in tiles)
-  private int xLL;
-  private int yLL;
-  private int xUR;
-  private int yUR;
 
   // The length and height of the search zone
   private int length;
@@ -123,11 +120,6 @@ public class Searcher {
     this.location = new Waypoint(-1.0, -1.0);
     this.searchLL = new Waypoint(-1.0, -1.0);
     this.searchUR = new Waypoint(-1.0, -1.0);
-
-    this.xLL = -1;
-    this.yLL = -1;
-    this.xUR = -1;
-    this.yUR = -1;
 
     this.length = -1;
     this.height = -1;
@@ -206,15 +198,9 @@ public class Searcher {
    */
   public void computeSearchPath() {
 
-    // Convert coordinates from centimeters to tiles.
-    this.xLL = (int)(this.searchLL.x / FinalProject.BOARD_TILE_LENGTH);
-    this.yLL = (int)(this.searchLL.y / FinalProject.BOARD_TILE_LENGTH);
-    this.xUR = (int)(this.searchUR.x / FinalProject.BOARD_TILE_LENGTH);
-    this.yUR = (int)(this.searchUR.y / FinalProject.BOARD_TILE_LENGTH);
-
     // Compute the length and height of the search zone.
-    this.length = Math.abs(this.xUR - this.xLL);
-    this.height = Math.abs(this.yUR - this.yLL);
+    this.length = Math.abs((int)this.searchUR.x - (int)this.searchLL.x);
+    this.height = Math.abs((int)this.searchUR.y - (int)this.searchLL.y);
 
     // Compute the total number of tiles surrounding the search zone.
     this.wpCount = (2 * this.length) + (2 * this.height) + 4;
@@ -443,10 +429,10 @@ public class Searcher {
     boolean[] valid = new boolean[this.wpCount];
 
     // Indicators signaling whether or not each side of the search zone is reachable
-    boolean reachL = (this.xLL > Searcher.LOWER_LIMIT_X);
-    boolean reachT = (this.yUR < Searcher.UPPER_LIMIT_Y);
-    boolean reachR = (this.xUR < Searcher.UPPER_LIMIT_X);
-    boolean reachB = (this.yLL > Searcher.LOWER_LIMIT_Y);
+    boolean reachL = (this.searchLL.x > Searcher.LOWER_LIMIT_X);
+    boolean reachT = (this.searchUR.y < Searcher.UPPER_LIMIT_Y);
+    boolean reachR = (this.searchUR.x < Searcher.UPPER_LIMIT_X);
+    boolean reachB = (this.searchLL.y > Searcher.LOWER_LIMIT_Y);
 
     int index = 0;
 
@@ -461,11 +447,11 @@ public class Searcher {
     this.cornerLL = index;
 
     // Compute the left-side waypoints.
-    x = this.searchLL.x - FinalProject.BOARD_TILE_LENGTH;
+    x = this.searchLL.x - Searcher.DISTANCE_TO_SEARCH_ZONE;
 
     for (int i = 0; i < this.height; ++i) {
       // We add 0.5 in order to get a coordinate that is the midpoint between two points.
-      y = ((double)(this.yLL + i) + 0.5) * FinalProject.BOARD_TILE_LENGTH;
+      y = this.searchLL.y + i + 0.5;
 
       waypoints[index] = new Waypoint(x, y);
       valid[index] = reachL;
@@ -480,11 +466,11 @@ public class Searcher {
     this.cornerUL = index;
 
     // Compute the top-side waypoints.
-    y = this.searchUR.y + FinalProject.BOARD_TILE_LENGTH;
+    y = this.searchUR.y + Searcher.DISTANCE_TO_SEARCH_ZONE;
 
     for (int i = 0; i < this.length; ++i) {
       // We add 0.5 in order to get a coordinate that is the midpoint between two points.
-      x = ((double)(this.xLL + i) + 0.5) * FinalProject.BOARD_TILE_LENGTH;
+      x = this.searchLL.x + i + 0.5;
 
       waypoints[index] = new Waypoint(x, y);
       valid[index] = reachT;
@@ -499,11 +485,11 @@ public class Searcher {
     this.cornerUR = index;
 
     // Compute the right-side waypoints.
-    x = this.searchUR.x + FinalProject.BOARD_TILE_LENGTH;
+    x = this.searchUR.x + Searcher.DISTANCE_TO_SEARCH_ZONE;
 
     for (int i = 0; i < this.height; ++i) {
       // We subtract 0.5 in order to get a coordinate that is the midpoint between two points.
-      y = ((double)(this.yUR - i) - 0.5) * FinalProject.BOARD_TILE_LENGTH;
+      y = this.searchUR.y - i - 0.5;
 
       waypoints[index] = new Waypoint(x, y);
       valid[index] = reachR;
@@ -518,11 +504,11 @@ public class Searcher {
     this.cornerLR = index;
 
     // Compute the bottom-side waypoints.
-    y = this.searchLL.y - FinalProject.BOARD_TILE_LENGTH;
+    y = this.searchLL.y - Searcher.DISTANCE_TO_SEARCH_ZONE;
 
     for (int i = 0; i < this.length; ++i) {
       // We subtract 0.5 in order to get a coordinate that is the midpoint between two points.
-      x = ((double)(this.xUR - i) - 0.5) * FinalProject.BOARD_TILE_LENGTH;
+      x = this.searchUR.x - i - 0.5;
 
       waypoints[index] = new Waypoint(x, y);
       valid[index] = reachB;
