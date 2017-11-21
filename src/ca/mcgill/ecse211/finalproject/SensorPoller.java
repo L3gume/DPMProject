@@ -60,43 +60,27 @@ public class SensorPoller extends Thread {
    * run() method.
    */
   public void run() {
+
     while (true) {
-      // Stop polling data whenever the light level reference count AND 
-      // the ultrasonic sensor reference count in our
-      // SensorData object have reached zero.
-      boolean lightZero = false;
-      boolean ultrasonicZero = false;
-      
       if (this.sd.getLLRefs() > 0) {
+        // Left light sensor
         this.lSensorLeft.fetchSample(this.lDataLeft, 0);
         this.sd.lightLevelHandler(this.lDataLeft[0], 1);
+
+        // Right light sensor
         this.lSensorRight.fetchSample(this.lDataRight, 0);
         this.sd.lightLevelHandler(this.lDataRight[0], 2);
-        lightZero = false;
-      } else {
-        lightZero = true;
+
+        // Middle light sensor
+        this.lSensorMid.fetchSample(this.lDataMid, 0);
+        this.sd.lightLevelHandler(this.lDataMid[0], 3);
       }
 
       if (this.sd.getUSRefs() > 0) {
+        // Ultrasonic sensor
         this.usSensor.fetchSample(this.usData, 0);
         this.sd.ultrasonicHandler(this.usData[0] * 100.0f);
-        ultrasonicZero = false;
-      } else {
-        ultrasonicZero = true;
       }
-      // This code basically bricks the sensors. pls fix
-
-//      if (lightZero && ultrasonicZero) {
-//        // Sleep indefinitely until this thread is interrupted, signaling that sensor
-//        // data may, once again, be needed.
-//        try {
-//          Thread.sleep(Long.MAX_VALUE);
-//        } catch (Exception e) {
-//          // ...
-//        }
-//
-//        continue;
-//      }
 
       // Sleep for a bit.
       try {
