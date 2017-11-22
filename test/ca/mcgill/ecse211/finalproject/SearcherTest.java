@@ -1,5 +1,6 @@
 package ca.mcgill.ecse211.finalproject;
 
+import lejos.hardware.Button;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 import lejos.hardware.port.Port;
@@ -22,6 +23,8 @@ public class SearcherTest {
   // Constants
   // --------------------------------------------------------------------------------
 
+  private static final long SLEEP_INTERVAL = 250;
+
   private static final double EPSILON = 0.01;
 
 
@@ -35,6 +38,24 @@ public class SearcherTest {
   // --------------------------------------------------------------------------------
 
   public static void main(String[] args) {
+
+    // Start a separate thread to monitor for button presses and terminate this
+    // program if it detects that the escape button has been pressed.
+    (new Thread() {
+      public void run() {
+        while (Button.waitForAnyPress() != Button.ID_ESCAPE) {
+          try {
+            // Sleep for a little bit to avoid hogging the processor.
+            Thread.sleep(SearcherTest.SLEEP_INTERVAL);
+          } catch (Exception e) {
+            // ...
+          }
+        }
+
+        // Kill the program.
+        System.exit(1);
+      }
+    }).start();
 
     {
 
