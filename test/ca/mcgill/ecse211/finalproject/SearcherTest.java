@@ -8,7 +8,6 @@ import lejos.hardware.sensor.EV3ColorSensor;
 import lejos.hardware.sensor.EV3UltrasonicSensor;
 import lejos.hardware.sensor.SensorModes;
 import lejos.robotics.SampleProvider;
-import lejos.robotics.filter.MeanFilter;
 
 
 
@@ -610,17 +609,14 @@ public class SearcherTest {
     // Initialize left light sensor.
     SensorModes lsSensorL = new EV3ColorSensor(lsPortL);
     SampleProvider lsSampleProviderL = lsSensorL.getMode("Red");
-    SampleProvider lsMedianL = new MeanFilter(lsSampleProviderL, lsSampleProviderL.sampleSize());
 
     // Initialize right light sensor.
     SensorModes lsSensorR = new EV3ColorSensor(lsPortR);
     SampleProvider lsSampleProviderR = lsSensorR.getMode("Red");
-    SampleProvider lsMedianR = new MeanFilter(lsSampleProviderR, lsSampleProviderR.sampleSize());
 
     // Initialize front light sensor.
     SensorModes lsSensorF = new EV3ColorSensor(lsPortF);
     SampleProvider lsSampleProviderF = lsSensorF.getMode("Red");
-    SampleProvider lsMedianF = new MeanFilter(lsSampleProviderF, lsSampleProviderF.sampleSize());
 
     // Initialize front ultrasonic sensor.
     SensorModes usSensorF = new EV3UltrasonicSensor(usPortF);
