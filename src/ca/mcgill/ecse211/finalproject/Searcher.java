@@ -341,14 +341,6 @@ public class Searcher {
        */
     }
 
-    // --- DEBUG ---
-
-    for (int i = 0, n = this.path.length; i < n; ++i) {
-      System.out.println("{ " + this.path[i].x + ", " + this.path[i].y + " }");
-    }
-
-    // --- DEBUG ---
-
     // Remove references to all unreachable waypoints, thus allowing the
     // garbage collector to free up any unused memory.
     this.waypoints = null;
