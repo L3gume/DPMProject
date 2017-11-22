@@ -36,9 +36,9 @@ public class FinalProject {
   public static final double WHEEL_RADIUS = 2.1;
   public static final double WHEEL_BASE = 15.225;
 
-  // Driver-related constants
-  public static final int SPEED_FWD = 175;
-  public static final int SPEED_ROT = 100;
+  // Driver-related constant
+  public static final int SPEED_FWD = 180;
+  public static final int SPEED_ROT = 115;
   public static final float RIGHT_WHEEL_MULT = 1.003f;
 
   // Localization-related constants
@@ -64,7 +64,7 @@ public class FinalProject {
   public static final double FLOOR_READING_FILTER = 20;
   
   // Navigation-related constants
-  public static final double ANGLE_THRESHOLD = Math.toRadians(1);
+  public static final double ANGLE_THRESHOLD = Math.toRadians(2);
   public static final double DISTANCE_THRESHOLD = 1;
 
 
@@ -149,15 +149,15 @@ public class FinalProject {
     sd.incrementColorRefs();
     // Start data threads.
     sensorPoller.start();
-    //odometer.start();
-    //disp.start();
+    odometer.start();
+    disp.start();
 
-    //cont.start();
+    cont.start();
     
-    // search path generation test
-    srch.setLocation(new Waypoint(4, 4));
-    srch.setSearchZone(new Waypoint(5, 6), new Waypoint(7, 7));
-    srch.computeSearchPath();
+//    // search path generation test
+//    srch.setLocation(new Waypoint(4, 4));
+//    srch.setSearchZone(new Waypoint(5, 6), new Waypoint(7, 7));
+//    srch.computeSearchPath();
     
     // Wheel base test
     //dr.rotate(90, false);

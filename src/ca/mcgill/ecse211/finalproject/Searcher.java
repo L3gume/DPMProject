@@ -26,10 +26,10 @@ public class Searcher {
   private static final long BEEP_INTERVAL = 200;
 
   // Lower and upper limits on waypoint values (in tiles) [non-inclusive]
-  private static final double LOWER_LIMIT_X = 1.0;
-  private static final double LOWER_LIMIT_Y = 1.0;
-  private static final double UPPER_LIMIT_X = 11.0;
-  private static final double UPPER_LIMIT_Y = 11.0;
+  private static final double LOWER_LIMIT_X = 0.0;
+  private static final double LOWER_LIMIT_Y = 0.0;
+  private static final double UPPER_LIMIT_X = 12.0;
+  private static final double UPPER_LIMIT_Y = 12.0;
 
   // The distance (in tiles) that the robot should stay away from the search zone
   private static final double DISTANCE_TO_SEARCH_ZONE = 0.5;

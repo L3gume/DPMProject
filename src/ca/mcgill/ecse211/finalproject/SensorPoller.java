@@ -70,8 +70,6 @@ public class SensorPoller extends Thread {
         // Right light sensor
         this.lSensorRight.fetchSample(this.lDataRight, 0);
         this.sd.lightLevelHandler(this.lDataRight[0], 2);
-
-       
       }
       
       if (this.sd.getColorRefs() > 0) {

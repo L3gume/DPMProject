@@ -53,7 +53,7 @@ public class MainController extends Thread {
   static Waypoint SG_UR; // upper right corner of green search zone.
 
   static Waypoint zip_red_other;
-  
+
   static Waypoint[] riverPath; // Path from the red zone to the green zone through the river.
   static Waypoint[] zipPath; // Path from the green starting corner to the zip line.
 
@@ -201,18 +201,22 @@ public class MainController extends Thread {
                                                                                             // (or
                                                                                             // different.
         } else {
-          if (ZC_G.x == ZO_G.x) {
-            if (SR_UR.y < zip_red_other.y) {
-              // avoid hitting the base of the zip line.
-              nav.setPath(new Waypoint[] {
-                  new Waypoint(zip_red_other.x + (zip_red_other.x < SR_UR.x ? 1 : -1), zip_red_other.y), new Waypoint(SR_UR.x - 0.5, SR_UR.y - 0.5)});
-            } else {
-              nav.setPath(new Waypoint[] {new Waypoint(zip_red_other.x, SR_UR.y), new Waypoint(SR_UR.x - 0.5, SR_UR.y - 0.5)});
-            }
-          } else {
-            // This case already takes care of that.
-            nav.setPath(new Waypoint[] {new Waypoint(zip_red_other.x, SR_UR.y), new Waypoint(SR_UR.x - 0.5, SR_UR.y - 0.5)});
-          }
+          // if (ZC_G.x == ZO_G.x) {
+          // if (SR_UR.y < zip_red_other.y) {
+          // // avoid hitting the base of the zip line.
+          // nav.setPath(new Waypoint[] {
+          // new Waypoint(zip_red_other.x + (zip_red_other.x < SR_UR.x ? 1 : -1), zip_red_other.y),
+          // new Waypoint(SR_UR.x - 0.5, SR_UR.y - 0.5)});
+          // } else {
+          // nav.setPath(new Waypoint[] {new Waypoint(zip_red_other.x, SR_UR.y), new
+          // Waypoint(SR_UR.x - 0.5, SR_UR.y - 0.5)});
+          // }
+          // } else {
+          // // This case already takes care of that.
+          // nav.setPath(new Waypoint[] {new Waypoint(zip_red_other.x, SR_UR.y), new
+          // Waypoint(SR_UR.x - 0.5, SR_UR.y - 0.5)});
+          // }
+          return State.SEARCHING;
         }
         return State.NAVIGATING;
       }
@@ -279,7 +283,8 @@ public class MainController extends Thread {
       } else if (ZO_G.y == ZC_G.y) {
         zip_red_other = new Waypoint(ZC_G.x + 5, ZC_G.y);
       }
-      loc.setRefPos(zip_red_other); // Set the reference position to after the zip line, in the red zone.
+      loc.setRefPos(zip_red_other); // Set the reference position to after the zip line, in the red
+                                    // zone.
       return State.LOCALIZING;
     } else {
       return State.ZIPLINING;
@@ -293,14 +298,17 @@ public class MainController extends Thread {
    * @return new state, or same one if not done.
    */
   private State process_searching() {
-//    // TODO: Implement the Searcher class.
-//    sub_state = srch.process();
-//
-//    if (srch.isDone()) {
-//      // Check for various conditions
-//    } else {
-//      return State.SEARCHING;
-//    }
+    if (is_red) {
+      srch.setLocation(nav.getLastTargetPos());
+      srch.setSearchZone(SG_LL, SG_UR);
+    } else {
+      srch.setLocation(zip_red_other);
+      srch.setSearchZone(SR_LL, SR_UR);
+    }
+    
+    srch.computeSearchPath();
+    boolean found = srch.search();
+    Button.waitForAnyPress();
 
     // This is going to be a fallthrough.
     return State.IDLE;
@@ -432,9 +440,9 @@ public class MainController extends Thread {
     } catch (Exception e) {
       System.err.println("Error: " + e.getMessage());
       e.printStackTrace();
-      
+
       // TODO: emergency localization procedure to get some points!!!!
-      
+
       System.exit(1);
     }
   }
