@@ -286,13 +286,13 @@ public class MainController extends Thread {
    */
   private State process_searching() {
     // TODO: Implement the Searcher class.
-    sub_state = srch.process();
+//    sub_state = srch.process();
 
-    if (srch.isDone()) {
-      // Check for various conditions
-    } else {
-      return State.SEARCHING;
-    }
+//    if (srch.isDone()) {
+//      // Check for various conditions
+//    } else {
+//      return State.SEARCHING;
+//    }
 
     // This is going to be a fallthrough.
     return State.IDLE;
