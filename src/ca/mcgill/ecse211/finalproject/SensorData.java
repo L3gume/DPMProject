@@ -230,7 +230,7 @@ public class SensorData {
         } else if (selection == 2) {
           data = this.llData2.clone();
         } else {
-          data = null;
+          data = this.llData3.clone();
         }
       }
     }
@@ -252,7 +252,7 @@ public class SensorData {
       } else if (selection == 2) {
         value = this.llData2[(this.llIndex2 - 1 + LL_DATA_SIZE) % LL_DATA_SIZE];
       } else {
-        value = 0;
+        value = this.llData3[(this.llIndex3 - 1 + LL_DATA_SIZE) % LL_DATA_SIZE];
       }
     }
     return value;
@@ -315,6 +315,8 @@ public class SensorData {
         value = this.llDataDeriv1[(this.llIndex1 - 1 + LL_DATA_SIZE) % LL_DATA_SIZE];
       } else if (selection == 2) {
         value = this.llDataDeriv2[(this.llIndex2 - 1 + LL_DATA_SIZE) % LL_DATA_SIZE];
+      } else {
+        value = this.llDataDeriv3[(this.llIndex3 - 1 + LL_DATA_SIZE) % LL_DATA_SIZE];
       }
     }
     return value;
