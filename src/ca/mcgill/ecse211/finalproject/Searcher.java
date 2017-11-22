@@ -25,12 +25,6 @@ public class Searcher {
   // Sleep interval between beeps
   private static final long BEEP_INTERVAL = 200;
 
-  // Lower and upper limits on waypoint values (in tiles) [non-inclusive]
-  private static final double LOWER_LIMIT_X = 0.0;
-  private static final double LOWER_LIMIT_Y = 0.0;
-  private static final double UPPER_LIMIT_X = 12.0;
-  private static final double UPPER_LIMIT_Y = 12.0;
-
   // The distance (in tiles) that the robot should stay away from the search zone
   private static final double DISTANCE_TO_SEARCH_ZONE = 0.5;
 
@@ -63,6 +57,16 @@ public class Searcher {
 
   // The current location of the robot
   private Waypoint location;
+
+  // The lower-left and upper-right corners of the enemy zone (in tiles)
+  private Waypoint enemyLL;
+  private Waypoint enemyUR;
+
+  // Lower and upper limits on waypoint values (in tiles) [inclusive]
+  private double lowerLimitX;
+  private double lowerLimitY;
+  private double upperLimitX;
+  private double upperLimitY;
 
   // The lower-left and upper-right corners of the search zone (in tiles)
   private Waypoint searchLL;
@@ -122,9 +126,19 @@ public class Searcher {
 
     this.driver = driver;
 
-    this.location = new Waypoint(-1.0, -1.0);
+    this.enemyLL = new Waypoint(-1.0, -1.0);
+    this.enemyUR = new Waypoint(-1.0, -1.0);
+
+    // The default values will be the entire 12x12 grid.
+    this.lowerLimitX = 0.5;
+    this.lowerLimitY = 0.5;
+    this.upperLimitX = 11.5;
+    this.upperLimitY = 11.5;
+
     this.searchLL = new Waypoint(-1.0, -1.0);
     this.searchUR = new Waypoint(-1.0, -1.0);
+
+    this.location = new Waypoint(-1.0, -1.0);
 
     this.length = -1;
     this.height = -1;
@@ -160,16 +174,20 @@ public class Searcher {
   // --------------------------------------------------------------------------------
 
   /**
-   * Set the current location of the robot.
+   * Set the coordinates of the enemy zone.
    *
    * This should be called before calling the `computeSearchPath()` method.
    *
-   * @param location the current location of the robot
+   * @param enemyLL the lower-left corner of the enemy zone
+   * @param enemyUR the upper-right corner of the enemy zone
    */
-  public void setLocation(Waypoint location) {
+  public void setEnemyZone(Waypoint enemyLL, Waypoint enemyUR) {
 
-    this.location.x = location.x;
-    this.location.y = location.y;
+    this.enemyLL.x = enemyLL.x;
+    this.enemyLL.y = enemyLL.y;
+
+    this.enemyUR.x = enemyUR.x;
+    this.enemyUR.y = enemyUR.y;
 
     return;
   }
@@ -194,6 +212,21 @@ public class Searcher {
   }
 
   /**
+   * Set the current location of the robot.
+   *
+   * This should be called before calling the `computeSearchPath()` method.
+   *
+   * @param location the current location of the robot
+   */
+  public void setLocation(Waypoint location) {
+
+    this.location.x = location.x;
+    this.location.y = location.y;
+
+    return;
+  }
+
+  /**
    * Compute the sequence of coordinates to which the robot should travel
    * in search of the enemy flag.
    *
@@ -202,6 +235,12 @@ public class Searcher {
    * This should be called before calling the `search()` method.
    */
   public void computeSearchPath() {
+
+    // Compute the lower/upper limits on the x/y-positions based on the enemy zone.
+    this.lowerLimitX = this.enemyLL.x + 0.5;
+    this.lowerLimitY = this.enemyLL.y + 0.5;
+    this.upperLimitX = this.enemyUR.x - 0.5;
+    this.upperLimitY = this.enemyUR.y - 0.5;
 
     // Compute the length and height of the search zone.
     this.length = Math.abs((int)this.searchUR.x - (int)this.searchLL.x);
@@ -444,10 +483,10 @@ public class Searcher {
     boolean[] valid = new boolean[this.wpCount];
 
     // Indicators signaling whether or not each side of the search zone is reachable
-    boolean reachL = (this.searchLL.x > Searcher.LOWER_LIMIT_X);
-    boolean reachT = (this.searchUR.y < Searcher.UPPER_LIMIT_Y);
-    boolean reachR = (this.searchUR.x < Searcher.UPPER_LIMIT_X);
-    boolean reachB = (this.searchLL.y > Searcher.LOWER_LIMIT_Y);
+    boolean reachL = (this.searchLL.x >= this.lowerLimitX);
+    boolean reachT = (this.searchUR.y <= this.upperLimitY);
+    boolean reachR = (this.searchUR.x <= this.upperLimitX);
+    boolean reachB = (this.searchLL.y >= this.lowerLimitY);
 
     int index = 0;
 
