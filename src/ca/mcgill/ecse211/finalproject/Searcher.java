@@ -280,22 +280,22 @@ public class Searcher {
       switch (closestCorner) {
         case 0:
           // Start from the lower-left corner.
-          pivot = this.cornerLL;
+          pivot = (this.cornerLL - 1 + this.wpCount) % this.wpCount;
           break;
 
         case 1:
           // Start from the upper-left corner.
-          pivot = this.cornerUL;
+          pivot = (this.cornerUL - 1 + this.wpCount) % this.wpCount;
           break;
 
         case 2:
           // Start from the upper-right corner.
-          pivot = this.cornerUR;
+          pivot = (this.cornerUR - 1 + this.wpCount) % this.wpCount;
           break;
 
         case 3:
           // Start from the lower-right corner.
-          pivot = this.cornerLR;
+          pivot = (this.cornerLR - 1 + this.wpCount) % this.wpCount;
           break;
 
         default:
@@ -488,7 +488,9 @@ public class Searcher {
     double y;
 
     // Compute the lower-left corner waypoint.
-    waypoints[index] = new Waypoint(this.searchLL.x, this.searchLL.y);
+    x = this.searchLL.x - Searcher.DISTANCE_TO_SEARCH_ZONE;
+    y = this.searchLL.y - Searcher.DISTANCE_TO_SEARCH_ZONE;
+    waypoints[index] = new Waypoint(x, y);
     valid[index] = reachB && reachL;
     ++index;
 
@@ -507,7 +509,9 @@ public class Searcher {
     }
 
     // Compute the upper-left corner waypoint.
-    waypoints[index] = new Waypoint(this.searchLL.x, this.searchUR.y);
+    x = this.searchLL.x - Searcher.DISTANCE_TO_SEARCH_ZONE;
+    y = this.searchUR.y + Searcher.DISTANCE_TO_SEARCH_ZONE;
+    waypoints[index] = new Waypoint(x, y);
     valid[index] = reachL && reachT;
     ++index;
 
@@ -526,7 +530,9 @@ public class Searcher {
     }
 
     // Compute the upper-right corner waypoint.
-    waypoints[index] = new Waypoint(this.searchUR.x, this.searchUR.y);
+    x = this.searchUR.x + Searcher.DISTANCE_TO_SEARCH_ZONE;
+    y = this.searchUR.y + Searcher.DISTANCE_TO_SEARCH_ZONE;
+    waypoints[index] = new Waypoint(x, y);
     valid[index] = reachT && reachR;
     ++index;
 
@@ -545,7 +551,9 @@ public class Searcher {
     }
 
     // Compute the lower-right corner waypoint.
-    waypoints[index] = new Waypoint(this.searchUR.x, this.searchLL.y);
+    x = this.searchUR.x + Searcher.DISTANCE_TO_SEARCH_ZONE;
+    y = this.searchLL.y - Searcher.DISTANCE_TO_SEARCH_ZONE;
+    waypoints[index] = new Waypoint(x, y);
     valid[index] = reachR && reachB;
     ++index;
 
@@ -702,7 +710,7 @@ public class Searcher {
    */
   private void shiftWaypoints(int pivot) {
 
-    waypoints = new Waypoint[this.wpCount];
+    Waypoint[] waypoints = new Waypoint[this.wpCount];
 
     // Swap all waypoints before index, `pivot`, with all those starting at `pivot`.
     for (int i = 0; i < this.wpCount; ++i) {
