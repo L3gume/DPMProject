@@ -636,29 +636,14 @@ public class Searcher {
     // ---
     //
 
-    float[] llData = null;
-
-    while (llData == null) {
-      try {
-        // Sleep a little bit so that the ultrasonic sensor data has time to stabalize.
-        Thread.sleep(Searcher.STABALIZE_INTERVAL);
-      } catch (Exception e) {
-        // ...
-      }
-
-      // It is unlikely that this will return 'null', but still check.
-      llData = this.sd.getUSData();
+    try {
+      // Sleep a little bit so that the light sensor data has time to stabalize.
+      Thread.sleep(Searcher.STABALIZE_INTERVAL);
+    } catch (Exception e) {
+      // ...
     }
 
-    float color = 0.0f;
-
-    // Compute the average of the stabalized data value received from the light sensor
-    // to get a more accurate value of the color in front of us.
-    for (int i = 0, n = llData.length; i < n; ++i) {
-      color += llData[i];
-    }
-
-    color /= llData.length;
+    float color = this.sd.getLLDataLatest(3);
 
     // Check if color value is too low.
     if (color < Searcher.COLORS[this.color.ordinal()] - Searcher.COLOR_ERROR) {
