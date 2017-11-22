@@ -779,4 +779,58 @@ public class Searcher {
     return Math.sqrt(Math.pow((b.x - a.x), 2.0) + Math.pow((b.y - a.y), 2.0));
   }
 
+
+  // --------------------------------------------------------------------------------
+  // Debug / Testing Methods
+  // --------------------------------------------------------------------------------
+
+  /**
+   * Get the computed search path that the robot will follow in search of the enemy flag.
+   *
+   * This should be called after calling the `computeSearchPath()` method.
+   *
+   * @return the search path
+   */
+  public Waypoint[] getSearchPath() {
+
+    Waypoint[] path = null;
+
+    if (this.path != null) {
+      path = new Waypoint[this.path.length];
+
+      // Perform a deep copy of each Waypoint object in our search path.
+      for (int i = 0, n = this.path.length; i < n; ++i) {
+        path[i] = new Waypoint(this.path[i].x, this.path[i].y);
+      }
+    }
+
+    return path;
+  }
+
+  /**
+   * Set the computed search path that the robot will follow in search of the enemy flag.
+   *
+   * @param path the search path
+   * @param corners the indices of `path` which are the LL, UL, UR, and LR corners (-1 if not reachable)
+   * @param direction the direction in which the robot will travel
+   */
+  public void setSearchPath(Waypoint[] path, int[] corners, Direction direction) {
+
+    this.path = new Waypoint[path.length];
+
+    // Perform a deep copy of each Waypoint object in our search path.
+    for (int i = 0, n = path.length; i < n; ++i) {
+      this.path[i] = new Waypoint(path[i].x, path[i].y);
+    }
+
+    this.cornerLL = corners[0];
+    this.cornerUL = corners[1];
+    this.cornerUR = corners[2];
+    this.cornerLR = corners[3];
+
+    this.direction = direction;
+
+    return;
+  }
+
 }
