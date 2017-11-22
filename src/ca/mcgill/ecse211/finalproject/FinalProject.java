@@ -37,8 +37,8 @@ public class FinalProject {
   public static final double WHEEL_BASE = 15.225;
 
   // Driver-related constant
-  public static final int SPEED_FWD = 180;
-  public static final int SPEED_ROT = 115;
+  public static final int SPEED_FWD = 190;
+  public static final int SPEED_ROT = 125;
   public static final float RIGHT_WHEEL_MULT = 1.003f;
 
   // Localization-related constants
