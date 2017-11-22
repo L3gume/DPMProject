@@ -32,7 +32,7 @@ public class Searcher {
   private static final double CAPTURE_DISTANCE_THRESHOLD = 25.0;
 
   // The amount of acceptable error that is allowed in the flag color readings
-  private static final double COLOR_ERROR = 0.2;
+  private static final double COLOR_ERROR = 0.001;
 
   // The direction in which the robot will be moving while following the search path
   public enum Direction {
@@ -47,7 +47,7 @@ public class Searcher {
   };
 
   // The mapping between the FlagColor enum values and actual color values
-  public static final float[] COLORS = { -1.0f, 0.0f, 7.0f, 3.0f, 6.0f };
+  public static final float[] COLORS = { -1.0f, 0.00f, 0.07f, 0.03f, 0.06f };
 
 
   // --------------------------------------------------------------------------------
