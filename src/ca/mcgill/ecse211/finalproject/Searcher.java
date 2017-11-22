@@ -330,7 +330,9 @@ public class Searcher {
       String msg = "error: computeSearchPath(): Unsupported search zone";
       System.out.println(msg);
 
-      System.exit(1);
+      this.path = null;
+
+      this.direction = Direction.UNKNOWN;
 
       /*
 
@@ -385,9 +387,12 @@ public class Searcher {
 
     double rotateAngle = 0.0;
 
-    // Increment reference counts on sensors.
-    this.sd.incrementLLRefs();
-    this.sd.incrementUSRefs();
+    // First assert that we have already computed the search path.
+    if (this.path == null) {
+      String msg = "error: search(): Missing search path";
+      System.out.println(msg);
+      return false;
+    }
 
     // Set the angle we will need to rotate in order to make turns around corners
     // and to look inwards toward the search zone.
@@ -405,8 +410,12 @@ public class Searcher {
         String msg = "error: search(): Unknown direction";
         System.out.println(msg);
 
-        System.exit(1);
+        return false;
     }
+
+    // Increment reference counts on sensors.
+    this.sd.incrementLLRefs();
+    this.sd.incrementUSRefs();
 
     // Navigate to each waypoint in the search path.
     for (int i = 0, n = this.path.length; i < n; ++i) {
