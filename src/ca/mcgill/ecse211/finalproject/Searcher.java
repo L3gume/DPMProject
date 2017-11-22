@@ -661,10 +661,16 @@ public class Searcher {
 
     // Check if color value is too low.
     if (color < Searcher.COLORS[this.color.ordinal()] - Searcher.COLOR_ERROR) {
+      // Move backward, away from the object.
+      this.driver.moveBackward(distance, false /* = inst_ret */);
+
       return false;
     }
     // Check if color value is too high.
     if (color > Searcher.COLORS[this.color.ordinal()] + Searcher.COLOR_ERROR) {
+      // Move backward, away from the object.
+      this.driver.moveBackward(distance, false /* = inst_ret */);
+
       return false;
     }
 
