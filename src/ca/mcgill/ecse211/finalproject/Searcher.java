@@ -374,7 +374,7 @@ public class Searcher {
   /**
    * Search enemy territory for the flag.
    *
-   * This should be caled after calling the `computeSearchPath()` method.
+   * This should be called after calling the `computeSearchPath()` method.
    * This should be called after calling the `setFlagColor()` method.
    *
    * @return true if the flag was successfully "captured", false otherwise
