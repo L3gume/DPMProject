@@ -81,10 +81,10 @@ public class FinalProject {
       new EV3LargeRegulatedMotor(LocalEV3.get().getPort("D"));
 
   // Sensor ports
-  private static final Port usPort = LocalEV3.get().getPort("S4");
-  private static final Port lsPortl = LocalEV3.get().getPort("S1");
-  private static final Port lsPortr = LocalEV3.get().getPort("S2");
-  private static final Port lsPortm = LocalEV3.get().getPort("S3");  
+  public static final Port usPort = LocalEV3.get().getPort("S4");
+  public static final Port lsPortl = LocalEV3.get().getPort("S1");
+  public static final Port lsPortr = LocalEV3.get().getPort("S2");
+  public static final Port lsPortm = LocalEV3.get().getPort("S3");
 
   // --------------------------------------------------------------------------------
   // Main method

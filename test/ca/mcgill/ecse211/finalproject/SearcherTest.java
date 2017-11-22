@@ -424,9 +424,12 @@ public class SearcherTest {
     // This is the location from which we are expecting the searcher to receive control.
     Waypoint location = new Waypoint(3.5, 0.5);
 
+    // This is the corner in which the robot should start.
+    int startCorner = 1;
+
     // Perform the test.
     result = SearcherTest.testSearchImpl(
-        path, corners, direction, color, location
+        path, corners, direction, color, location, startCorner
         );
 
     return result;
@@ -538,32 +541,71 @@ public class SearcherTest {
   /**
    * Test the Searcher class's `search()` method.
    *
+   * The robot must be placed at the one of the grid corners so that it can first localize
+   * before proceeding to perform the search for the enemy flag.
+   *
    * @param path the search path that the robot is expected to follow
    * @param corners the indices of `path` which are the LL, UL, UR, and LR corners (-1 if not reachable)
    * @param direction the direction the robot is expected to move during its search
    * @param color the color of the enemy flag
    * @param location the location at which the searcher is given control of the robot
+   * @param startCorner the corner (0 - 3) of the grid to which the robot will initially localize
    *
    * @return true if the searcher generated the the expected search path, false otherwise
    */
   private static boolean testSearchImpl(
-      Waypoint[] path, int[] corners, Searcher.Direction direction, Searcher.FlagColor color, Waypoint location
+      Waypoint[] path, int[] corners, Searcher.Direction direction, Searcher.FlagColor color, Waypoint location, int startCorner
       ) {
 
     boolean result = true;
 
+    // Calculate the position that the robot to which should initially localize.
+    Waypoint referencePosition = new Waypoint(location.x, location.y);
+
+    switch (startCorner) {
+      case 0:
+        referencePosition.x += 0.5;
+        referencePosition.y += 0.5;
+
+        break;
+
+      case 1:
+        referencePosition.x -= 0.5;
+        referencePosition.y += 0.5;
+
+        break;
+
+      case 2:
+        referencePosition.x -= 0.5;
+        referencePosition.y -= 0.5;
+
+        break;
+
+      case 3:
+        referencePosition.x += 0.5;
+        referencePosition.y -= 0.5;
+
+        break;
+
+      default:
+        String msg = "error: testSearchImpl(): Invalid starting corner";
+        System.out.println(msg + ": " + startCorner);
+
+        return false;
+    }
+
     // Wheel motors
-    EV3LargeRegulatedMotor motorL = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("A"));
-    EV3LargeRegulatedMotor motorR = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("B"));
+    EV3LargeRegulatedMotor motorL = FinalProject.leftMotor;
+    EV3LargeRegulatedMotor motorR = FinalProject.rightMotor;
 
     // Zip-line motor
-    EV3LargeRegulatedMotor motorZ = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("D"));
+    EV3LargeRegulatedMotor motorZ = FinalProject.zipMotor;
 
     // Sensor ports
-    Port lsPortL = LocalEV3.get().getPort("S1");
-    Port lsPortR = LocalEV3.get().getPort("S2");
-    Port lsPortF = LocalEV3.get().getPort("S3");
-    Port usPortF = LocalEV3.get().getPort("S4");
+    Port lsPortL = FinalProject.lsPortl;
+    Port lsPortR = FinalProject.lsPortr;
+    Port lsPortF = FinalProject.lsPortm;
+    Port usPortF = FinalProject.usPort;
 
     // Initialize left light sensor.
     SensorModes lsSensorL = new EV3ColorSensor(lsPortL);
@@ -603,6 +645,22 @@ public class SearcherTest {
     // Create the Navigator object.
     Navigator navigator = new Navigator(driver, odometer, sd);
 
+    // Create the UltrasonicLocalizer object.
+    UltrasonicLocalizer ultrasonicLocalizer = new UltrasonicLocalizer(driver, odometer, sd);
+
+    // Create the LightLocalizer object.
+    LightLocalizer lightLocalizer = new LightLocalizer(driver, odometer, sd);
+
+    // Create the Localizer object.
+    Localizer localizer = new Localizer(ultrasonicLocalizer, lightLocalizer, driver);
+
+    // The ultrasonic and light localizers depend on some static variables in the MainController
+    // and Localizer classes, so we will manually set these values for our test.
+    MainController.is_red = true;
+    MainController.redTeamStart = referencePosition;
+    MainController.RedCorner = startCorner;
+    localizer.setRefPos(referencePosition);
+
     // Start all data-capturing threads.
     sensorPoller.start();
     odometer.start();
@@ -620,6 +678,19 @@ public class SearcherTest {
     searcher.setSearchPath(path, corners, direction);
     searcher.setLocation(location);
     searcher.setFlagColor(color);
+
+    System.out.println("Performing ultrasonic localization...");
+
+    // First localize using the ultrasonic localizer.
+    ultrasonicLocalizer.localize();
+
+    System.out.println("Performing light localization...");
+
+    // Next localize using the light localizer.
+    lightLocalizer.localize();
+
+    System.out.println("Localization complete.");
+    System.out.println("");
 
     System.out.println("Searching for enemy flag...");
 
