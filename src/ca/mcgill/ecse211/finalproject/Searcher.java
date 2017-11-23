@@ -16,6 +16,9 @@ public class Searcher {
   // Constants
   // --------------------------------------------------------------------------------
 
+  // Maximum amount of time (in milliseconds) that the `search()` method is allowed to run
+  private static final long TIMEOUT = 120000;
+
   // Sleep interval between checking if next waypoint has been reached
   private static final long WAIT_INTERVAL = 40;
 
@@ -379,6 +382,10 @@ public class Searcher {
 
     double rotateAngle = 0.0;
 
+    // Start and elapsed times for implementing a search timeout.
+    long start = 0;
+    long elapsed = 0;
+
     // First assert that we have already computed the search path.
     if (this.path == null) {
       String msg = "error: search(): Missing search path";
@@ -405,12 +412,21 @@ public class Searcher {
         return false;
     }
 
+    // Get the start time.
+    start = System.currentTimeMillis();
+
     // Increment reference counts on sensors.
     this.sd.incrementLLRefs();
     this.sd.incrementUSRefs();
 
     // Navigate to each waypoint in the search path.
     for (int i = 0, n = this.path.length; i < n; ++i) {
+
+      // Break out of the loop now if our elapsed time has exceeded our timeout.
+      elapsed = System.currentTimeMillis() - start;
+      if (elapsed > Searcher.TIMEOUT) {
+        break;
+      }
 
       this.navigator.setPath(new Waypoint[] { this.path[i] });
 
@@ -424,6 +440,12 @@ public class Searcher {
         } catch (Exception e) {
           // ...
         }
+      }
+
+      // Break out of the loop now if our elapsed time has exceeded our timeout.
+      elapsed = System.currentTimeMillis() - start;
+      if (elapsed > Searcher.TIMEOUT) {
+        break;
       }
 
       // Have we reached a corner ?
