@@ -55,6 +55,9 @@ public class Searcher {
   // Driver object for finer control over the robot's movements
   private Driver driver;
 
+  // Odometer object for querying information regarding position / orientation
+  private Odometer odometer;
+
   // The current location of the robot
   private Waypoint location;
 
@@ -106,6 +109,10 @@ public class Searcher {
   // The sequence of waypoints to follow when searching for the flag
   private Waypoint[] path;
 
+  // The angle to which we must initally orientate ourselves to begin the search
+  // upon reaching the first waypoint in the search path
+  private double initialOrientation;
+
   // The direction in which the robot will be traveling (clockwise or counter-clockwise)
   private Direction direction;
 
@@ -119,12 +126,13 @@ public class Searcher {
    *
    * @param sd SensorData object to access sensor data
    */
-
-  public Searcher(Navigator navigator, Driver driver, SensorData sd) {
+  public Searcher(Navigator navigator, Driver driver, Odometer odometer, SensorData sd) {
 
     this.navigator = navigator;
 
     this.driver = driver;
+
+    this.odometer = odometer;
 
     this.enemyLL = new Waypoint(-1.0, -1.0);
     this.enemyUR = new Waypoint(-1.0, -1.0);
@@ -164,6 +172,8 @@ public class Searcher {
     this.sd = sd;
 
     this.path = null;
+
+    this.initialOrientation = 0.0;
 
     this.direction = Direction.UNKNOWN;
   }
@@ -263,34 +273,44 @@ public class Searcher {
       // The search zone is _not_ against any wall.
       //
 
-      int pivot = -1;
+      // There will be exactly four reachable corners.
+      Waypoint[] corners = new Waypoint[] {
+        this.waypoints[this.cornerLL], this.waypoints[this.cornerUL],
+        this.waypoints[this.cornerUR], this.waypoints[this.cornerLR]
+      };
 
-      Waypoint[] corners =
-          new Waypoint[] {this.waypoints[this.cornerLL], this.waypoints[this.cornerUL],
-              this.waypoints[this.cornerUR], this.waypoints[this.cornerLR]};
-
-      // Find out which corner of the search zone we are closest to.
+      // Find out to which corner of the search zone we are closest.
       int closestCorner = Searcher.findClosestWaypoint(this.location, corners);
+
+      int pivot = -1;
 
       switch (closestCorner) {
         case 0:
           // Start from the lower-left corner.
-          pivot = this.cornerLL;
+          pivot = (this.cornerLL - 1 + this.wpCount) % this.wpCount;
+          this.initialOrientation =  90.0;
+
           break;
 
         case 1:
           // Start from the upper-left corner.
-          pivot = this.cornerUL;
+          pivot = (this.cornerUL - 1 + this.wpCount) % this.wpCount;
+          this.initialOrientation =   0.0;
+
           break;
 
         case 2:
           // Start from the upper-right corner.
-          pivot = this.cornerUR;
+          pivot = (this.cornerUR - 1 + this.wpCount) % this.wpCount;
+          this.initialOrientation = 270.0;
+
           break;
 
         case 3:
           // Start from the lower-right corner.
-          pivot = this.cornerLR;
+          pivot = (this.cornerLR - 1 + this.wpCount) % this.wpCount;
+          this.initialOrientation = 180.0;
+
           break;
 
         default:
@@ -429,6 +449,24 @@ public class Searcher {
         } catch (Exception e) {
           // ...
         }
+      }
+
+      // Check if this is the first waypoint in our search path.
+      if (i == 0) {
+        // Get the current orientation of the robot.
+        double angle = Math.toDegrees(this.odometer.getTheta());
+
+        double r1 = angle - this.initialOrientation;
+        double r2 = this.initialOrientation - angle;
+
+        // We must rotate to the correct orientation to correctly navigate around the search zone.
+        if (Math.abs(r1) < Math.abs(r2)) {
+          this.driver.rotate(r1, false /* = inst_ret */);
+        } else {
+          this.driver.rotate(r2, false /* = inst_ret */);
+        }
+
+        continue;
       }
 
       // Have we reached a corner ?
