@@ -329,9 +329,9 @@ public class Searcher {
           System.exit(1);
       }
 
-      // Shift the waypoints such that the waypoint at index zero is the
-      // initial waypoint to which we need to navigate.
-      this.shiftWaypoints(pivot);
+      // Perform a circular shift on the waypoints such that the waypoint at index zero
+      // is the initial waypoint to which we need to navigate in our search path.
+      this.transformWaypoints(pivot, pivot, 1);
 
       this.path = this.waypoints;
 
@@ -342,26 +342,99 @@ public class Searcher {
       // The search zone is located against (at least) one wall.
       //
 
-      // TODO
+      int[] edgeIndex = new int[] { 0, 0 };
 
-      /*
-       * TEMPORARY
-       *
+      int index = 0;
 
-       */
+      int i = 0;
+      int j = 1;
 
-      String msg = "error: computeSearchPath(): Unsupported search zone";
-      System.out.println(msg);
+      // Find the edges of our search path.
+      while (index < 2) {
+        if (this.valid[i] != this.valid[j]) {
+          edgeIndex[index] = this.valid[j] ? j : i;
 
-      this.path = null;
+          ++index;
+        }
 
-      this.direction = Direction.UNKNOWN;
+        i = (i + 1 + this.wpCount) % this.wpCount;
+        j = (j + 1 + this.wpCount) % this.wpCount;
+      }
 
-      /*
+      // There will be exactly two reachable waypoints that touch a wall.
+      Waypoint[] edges = new Waypoint[] {
+        this.waypoints[edgeIndex[0]], this.waypoints[edgeIndex[1]]
+      };
 
-       *
-       * ---
-       */
+      // Find out to which edge (i.e. a waypoint that touches a wall) we are closest.
+      int closestEdge = Searcher.findClosestWaypoint(this.location, edges);
+
+      int start = -1;
+      int limit = -1;
+      int shift =  0;
+
+      switch (closestEdge) {
+        case 0:
+          start = edgeIndex[0];
+          limit = (edgeIndex[1] - 1 + this.wpCount) % this.wpCount;
+
+          if (this.valid[(edgeIndex[0] + edgeIndex[1]) / 2]) {
+            // Our search path will run clockwise.
+            shift = +1;
+          } else {
+            // Our search path will run counter-clockwise.
+            shift = -1;
+          }
+
+          break;
+
+        case 1:
+          start = edgeIndex[1];
+          limit = (edgeIndex[0] - 1 + this.wpCount) % this.wpCount;
+
+          if (this.valid[(edgeIndex[0] + edgeIndex[1]) / 2]) {
+            // Our search path will run counter-clockwise.
+            shift = -1;
+          } else {
+            // Our search path will run clockwise.
+            shift = +1;
+          }
+
+          break;
+
+        default:
+          // This should be unreachable, but log an error and exit if we do somehow get here.
+          String msg = "error: computeSearchPath(): Unknown closest edge";
+          System.out.println(msg + ": " + closestEdge);
+
+          System.exit(1);
+      }
+
+      // Perform a circular shift on the waypoints such that the waypoint at index zero
+      // is the initial waypoint to which we need to navigate in our search path, and remove
+      // all waypoints that are not reachable by the robot.
+      this.transformWaypoints(start, limit, shift);
+
+      this.path = this.waypoints;
+
+      if (!this.reachSideL) {
+        this.initialOrientation =   0.0;
+      }
+      if (!this.reachSideT) {
+        this.initialOrientation = 270.0;
+      }
+      if (!this.reachSideR) {
+        this.initialOrientation = 180.0;
+      }
+      if (!this.reachSideB) {
+        this.initialOrientation =  90.0;
+      }
+
+      if (shift > 0) {
+        this.direction = Direction.CLOCKWISE;
+      } else {
+        this.direction = Direction.COUNTER_CLOCKWISE;
+      }
     }
 
     // Remove references to all unreachable waypoints, thus allowing the
@@ -755,27 +828,64 @@ public class Searcher {
   }
 
   /**
-   * Swap all waypoints before index, `pivot`, with all other starting at `pivot`,
-   * and update the indices of the search zone corners.
+   * Transform `this.waypoints` such that it now holds all waypoints starting from index `start`
+   * and ending one before `limit` (`start` may be greater than `limit`).
    *
-   * @param pivot the index at which to swap
+   * @param start the start (left) index of the waypoints to be kept
+   * @param limit the limit (right) index of the waypoints to be kept
+   * @param shift the direction (-1 = reverse, 1 = forward) in which to order the waypoints
    */
-  private void shiftWaypoints(int pivot) {
+  private void transformWaypoints(int start, int limit, int shift) {
 
-    Waypoint[] waypoints = new Waypoint[this.wpCount];
+    int n = this.waypoints.length;
 
-    // Swap all waypoints before index, `pivot`, with all those starting at `pivot`.
-    for (int i = 0; i < this.wpCount; ++i) {
-      waypoints[i] = this.waypoints[(pivot + i) % this.wpCount];
+    int size = 0;
+
+    // Calculate the new size of the array after the transformation.
+    if (shift > 0) {
+      size = (start < limit) ? limit - start : limit - start + n;
+    } else {
+      size = (start > limit) ? start - limit : start - limit + n;
+    }
+
+    Waypoint[] waypoints = new Waypoint[size];
+
+    int cornerLL = this.cornerLL;
+    int cornerUL = this.cornerUL;
+    int cornerUR = this.cornerUR;
+    int cornerLR = this.cornerLR;
+
+    this.cornerLL = -1;
+    this.cornerUL = -1;
+    this.cornerUR = -1;
+    this.cornerLR = -1;
+
+    // Perform a deep copy of the elements in `this.waypoints`.
+    for (int i = 0; i < size; ++i) {
+      int index = (start + (i * shift) + n) % n;
+
+      waypoints[i] = this.waypoints[index];
+
+      // Update the indices of the search zone corners.
+      if (index == cornerLL) {
+        this.cornerLL = i;
+        continue;
+      }
+      if (index == cornerUL) {
+        this.cornerUL = i;
+        continue;
+      }
+      if (index == cornerUR) {
+        this.cornerUR = i;
+        continue;
+      }
+      if (index == cornerLR) {
+        this.cornerLR = i;
+        continue;
+      }
     }
 
     this.waypoints = waypoints;
-
-    // Update the indices of the search zone corners.
-    this.cornerLL = ((this.cornerLL - pivot) + this.wpCount) % this.wpCount;
-    this.cornerUL = ((this.cornerUL - pivot) + this.wpCount) % this.wpCount;
-    this.cornerUR = ((this.cornerUR - pivot) + this.wpCount) % this.wpCount;
-    this.cornerLR = ((this.cornerLR - pivot) + this.wpCount) % this.wpCount;
 
     return;
   }
