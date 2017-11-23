@@ -119,6 +119,26 @@ public class SearcherTest {
     {
 
     System.out.println("==================================================");
+    System.out.println("testComputeSearchPathRightWallBottomWall2x1");
+    System.out.println("==================================================");
+    System.out.println("");
+
+    boolean result = SearcherTest.testComputeSearchPathRightWallBottomWall2x1();
+
+    // Print to the console whether the test passed or failed.
+    if (result) {
+      System.out.println("PASS");
+    } else {
+      System.out.println("FAIL");
+    }
+
+    System.out.println("");
+
+    } // local
+
+    {
+
+    System.out.println("==================================================");
     System.out.println("testSearchSimple1x2");
     System.out.println("==================================================");
     System.out.println("");
@@ -355,6 +375,67 @@ public class SearcherTest {
 
     // This is the location from which we are expecting the searcher to receive control.
     Waypoint location = new Waypoint(4.5, 0.5);
+
+    // Perform the test.
+    result = SearcherTest.testComputeSearchPathImpl(
+        expected, enemyLL, enemyUR, searchLL, searchUR, location
+        );
+
+    return result;
+  }
+
+  /**
+   * Test the Searcher class's `computeSearchPath()` method on a 2x1 search zone,
+   * located along the right and bottom walls.
+   *
+   * @return true if the test passed, false otherwise
+   */
+  private static boolean testComputeSearchPathRightWallBottomWall2x1() {
+
+    //
+    // Example:
+    //
+    //            (4, 4)
+    //                 v
+    // -----------------
+    // |   |   |   | L |
+    // -----------------
+    // |   |   |   |   |
+    // -----------------
+    // |   | 2 | 1 | 0 |
+    // -----------------
+    // |   | 3 | X | X |
+    // -----------------
+    // ^
+    // (0, 0)
+    //
+    //
+    // L = the starting location of the robot
+    // X = the search zone
+    //
+    // 0-3 = the 0th, 1st, ..., 3rd waypoint in the search path
+    //
+
+    boolean result = false;
+
+    // This is the path that we are expecting the searcher to compute.
+    Waypoint[] expected = new Waypoint[] {
+      new Waypoint(3.5, 1.5),
+      new Waypoint(2.5, 1.5),
+      new Waypoint(1.5, 1.5),
+      new Waypoint(1.5, 0.5)
+    };
+
+    // These are the lower-left and upper-right corners of the search zone.
+    Waypoint enemyLL = new Waypoint(0.0, 0.0);
+    Waypoint enemyUR = new Waypoint(4.0, 4.0);
+
+    // These are the lower-left and upper-right corners of the search zone.
+    Waypoint searchLL = new Waypoint(2.0, 0.0);
+    Waypoint searchUR = new Waypoint(4.0, 1.0);
+
+    // This is the location from which we are expecting the searcher to receive control.
+    Waypoint location = new Waypoint(3.5, 3.5);
 
     // Perform the test.
     result = SearcherTest.testComputeSearchPathImpl(
