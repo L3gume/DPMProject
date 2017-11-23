@@ -459,7 +459,7 @@ public class SearcherTest {
 
     // Because we are only interested in the search path and will not be calling the Searcher
     // class's `search()` method, it is okay to use 'null' for the constructor arguments.
-    Searcher searcher = new Searcher(null, null, null);
+    Searcher searcher = new Searcher(null, null, null, null);
 
     // Initialize the searcher with the controlled input data.
     searcher.setEnemyZone(enemyLL, enemyUR);
@@ -661,8 +661,8 @@ public class SearcherTest {
     sensorPoller.start();
     odometer.start();
 
-    // Construct the searcher with functional Navigator, Driver, and SensorData parameters.
-    Searcher searcher = new Searcher(navigator, driver, sd);
+    // Construct the searcher with functional Navigator, Driver, Odometer, and SensorData parameters.
+    Searcher searcher = new Searcher(navigator, driver, odometer, sd);
 
     // The enemy and search zone information is only used for computing the search path,
     // but since we are providing our own search path for the robot to follow, we can just

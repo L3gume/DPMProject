@@ -133,7 +133,7 @@ public class FinalProject {
     LightLocalizer ll = new LightLocalizer(dr, odometer, sd);
     Localizer loc = new Localizer(ul, ll, dr);   
     Navigator nav = new Navigator(dr, odometer, sd);
-    Searcher srch = new Searcher(nav, dr, sd);
+    Searcher srch = new Searcher(nav, dr, odometer, sd);
     ZipLine zip = new ZipLine(zipMotor,odometer, dr, sd);
 
     // Create MainController object.
