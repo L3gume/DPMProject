@@ -53,6 +53,7 @@ public class MainController extends Thread {
   static Waypoint SG_UR; // upper right corner of green search zone.
 
   static Waypoint zip_red_other;
+  static Waypoint green_relocalize_pos;
 
   static Waypoint[] riverPath; // Path from the red zone to the green zone through the river.
   static Waypoint[] zipPath; // Path from the green starting corner to the zip line.
@@ -78,6 +79,8 @@ public class MainController extends Thread {
   private boolean initial_loc_done = false;
   private boolean zipline_loc_done = false;
   private boolean traversed_zipline = false;
+  private boolean has_searched = false;
+  private boolean post_river_traversal = false;
   private boolean finished_demo = false;
 
   /**
@@ -190,8 +193,14 @@ public class MainController extends Thread {
         nav.setPath(new Waypoint[] {ZO_G});
         return State.NAVIGATING;
       }
+      
+      if (is_red && initial_loc_done && has_searched && !zipline_loc_done) {
+        zipline_loc_done = true;
+        nav.setPath(new Waypoint[] {ZO_G});
+        return State.NAVIGATING;
+      }
 
-      if (traversed_zipline) {
+      if (traversed_zipline && !has_searched) {
         if (is_red) {
           // That means we are basically done.
           nav.setPath(new Waypoint[] {new Waypoint(ZO_R.x, redTeamStart.y), redTeamStart}); // probably
@@ -201,23 +210,24 @@ public class MainController extends Thread {
                                                                                             // (or
                                                                                             // different.
         } else {
-          // if (ZC_G.x == ZO_G.x) {
-          // if (SR_UR.y < zip_red_other.y) {
-          // // avoid hitting the base of the zip line.
-          // nav.setPath(new Waypoint[] {
-          // new Waypoint(zip_red_other.x + (zip_red_other.x < SR_UR.x ? 1 : -1), zip_red_other.y),
-          // new Waypoint(SR_UR.x - 0.5, SR_UR.y - 0.5)});
-          // } else {
-          // nav.setPath(new Waypoint[] {new Waypoint(zip_red_other.x, SR_UR.y), new
-          // Waypoint(SR_UR.x - 0.5, SR_UR.y - 0.5)});
-          // }
-          // } else {
-          // // This case already takes care of that.
-          // nav.setPath(new Waypoint[] {new Waypoint(zip_red_other.x, SR_UR.y), new
-          // Waypoint(SR_UR.x - 0.5, SR_UR.y - 0.5)});
-          // }
           return State.SEARCHING;
         }
+        
+        if (traversed_zipline && has_searched && !post_river_traversal) {
+          if (is_red) {
+            //...
+          } else {
+            nav.setPath(riverPath);
+          }
+        }
+        
+        if (traversed_zipline && has_searched && post_river_traversal) {
+          if (!is_red) {
+            nav.setPath(new Waypoint[] {greenTeamStart});
+          }
+        }
+        
+        
         return State.NAVIGATING;
       }
     } else {
@@ -236,12 +246,18 @@ public class MainController extends Thread {
    */
   private State process_navigating() {
     sub_state = nav.process();
-
     if (nav.isDone()) {
       if (is_red) {
-        if (initial_loc_done) {
+        if (initial_loc_done && !has_searched) {
           // The river was crossed, move to searching
           return State.SEARCHING;
+        }
+        if (initial_loc_done && has_searched && !zipline_loc_done) {
+          loc.setRefPos(ZO_G);
+          return State.LOCALIZING;
+        }
+        if (initial_loc_done && has_searched && zipline_loc_done) {
+          return State.ZIPLINING;
         }
       } else {
         if (initial_loc_done && !zipline_loc_done) {
@@ -251,11 +267,17 @@ public class MainController extends Thread {
         if (initial_loc_done && zipline_loc_done && !traversed_zipline) {
           return State.ZIPLINING;
         }
-        if (initial_loc_done && zipline_loc_done && traversed_zipline) {
-          Sound.beepSequenceUp();
+        if (initial_loc_done && zipline_loc_done && traversed_zipline && has_searched && !post_river_traversal) {
+          // we just crossed the river
+          nav.setPath(new Waypoint[] {green_relocalize_pos});
+          while (!nav.isDone());
+          loc.setRefPos(green_relocalize_pos);
+          post_river_traversal = true;
+          return State.LOCALIZING;
+        }
+        if (initial_loc_done && zipline_loc_done && traversed_zipline && has_searched && post_river_traversal) {
           Button.waitForAnyPress();
-          finished_demo = true;
-          return State.IDLE;
+          // we're done.
         }
       }
     } else {
@@ -308,10 +330,16 @@ public class MainController extends Thread {
     
     srch.computeSearchPath();
     boolean found = srch.search();
-    Button.waitForAnyPress();
-
+    has_searched = true;
+    
+    if (is_red) {
+      nav.setPath(new Waypoint[] {ZO_G});
+    } else {
+      nav.setPath(riverPath);
+    }
+    
     // This is going to be a fallthrough.
-    return State.IDLE;
+    return State.NAVIGATING;
   }
 
   /**
@@ -380,18 +408,33 @@ public class MainController extends Thread {
         if (SV_LL.y == SH_LL.y) {
           riverPath = new Waypoint[] {new Waypoint(SH_LL.x, SH_LL.y + 0.5),
               new Waypoint(SH_UR.x - 0.5, SH_UR.y - 0.5), new Waypoint(SV_UR.x - 0.5, SV_UR.y)};
+          green_relocalize_pos = new Waypoint(SV_UR.x, SV_UR.y + 1);
         } else {
           riverPath = new Waypoint[] {new Waypoint(SH_LL.x, SH_LL.y + 0.5),
-              new Waypoint(SH_UR.x - 0.5, SH_UR.y - 0.5), new Waypoint(SV_LL.x - 0.5, SV_LL.y)};
+              new Waypoint(SH_UR.x - 0.5, SH_UR.y - 0.5), new Waypoint(SV_LL.x + 0.5, SV_LL.y)};
+          green_relocalize_pos = new Waypoint(SV_LL.x, SV_LL.y - 1);
         }
       } else if (SV_UR.y == Red_LL.y) {
         // River starts with the vertical segment and is under the red zone
         if (SV_LL.x == SH_LL.x) {
           riverPath = new Waypoint[] {new Waypoint(SV_UR.x - 0.5, SV_UR.y),
               new Waypoint(SV_LL.x + 0.5, SV_LL.y + 0.5), new Waypoint(SH_UR.x, SH_UR.y - 0.5)};
+          green_relocalize_pos = new Waypoint(SH_UR.x + 1, SH_UR.y - 1);
         } else {
           riverPath = new Waypoint[] {new Waypoint(SV_UR.x - 0.5, SV_UR.y),
               new Waypoint(SV_LL.x + 0.5, SV_LL.y + 0.5), new Waypoint(SH_LL.x, SH_LL.y + 0.5)};
+          green_relocalize_pos = new Waypoint(SH_LL.x + 1, SH_LL.y);
+        }
+      } else if (SH_UR.x == Red_LL.x) {
+        if (SV_UR.y == SH_UR.y) {
+          green_relocalize_pos = new Waypoint(SV_LL.x, SV_LL.y - 1);
+          riverPath = new Waypoint[] {new Waypoint(SH_UR.x, SH_UR.y - 0.5),
+              new Waypoint(SH_LL.x + 0.5, SH_LL.y + 0.5), new Waypoint(SV_LL.x + 0.5, SV_LL.y)};
+          
+        } else {
+          riverPath = new Waypoint[] {new Waypoint(SH_LL.x, SH_LL.y + 0.5),
+              new Waypoint(SH_UR.x - 0.5, SH_UR.y - 0.5), new Waypoint(SV_UR.x - 0.5, SV_UR.y)};
+          green_relocalize_pos = new Waypoint(SV_UR.x, SV_UR.y + 1);
         }
       }
 

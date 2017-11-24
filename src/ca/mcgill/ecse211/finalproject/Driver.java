@@ -180,6 +180,7 @@ public class Driver {
    * Stops the zip line motor.
    */
   public void stopTopMotor() {
+    topMotor.setSpeed(FinalProject.ZIPLINE_TRAVERSAL_SPEED);
     topMotor.stop();
   }
 

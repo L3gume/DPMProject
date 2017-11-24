@@ -59,7 +59,7 @@ public class LightLocalizer {
     int error_counter = 0; 
     sd.incrementLLRefs(); // increment the references to the light poller to make the sensorData
                           // start gathering data.
-    sleepThread(1); // wait to make sure the sensorData class has time to get some data.
+    sleepThread(0.5f); // wait to make sure the sensorData class has time to get some data.
     ref_pos = Localizer.getRefPos(); // Get the reference position from the Localizer class.
     if (ref_pos != (MainController.is_red ? MainController.redTeamStart
         : MainController.greenTeamStart)) {
@@ -216,12 +216,12 @@ public class LightLocalizer {
           && System.currentTimeMillis() - started_moving_t > FinalProject.MOVE_TIME_THRESHOLD) {
         if (left_stopped && !right_stopped) {
           if (forward) {
-            dr.setSpeedRightMotor(175);
+            dr.setSpeedRightMotor(150);
             dr.rightMotorBackward();
             started_moving_t = System.currentTimeMillis();
             forward = false;
           } else {
-            dr.setSpeedRightMotor(175);
+            dr.setSpeedRightMotor(150);
             dr.rightMotorForward();
             started_moving_t = System.currentTimeMillis();
             forward = true;
@@ -230,12 +230,12 @@ public class LightLocalizer {
 
         if (!left_stopped && right_stopped) {
           if (forward) {
-            dr.setSpeedLeftMotor(175);
+            dr.setSpeedLeftMotor(150);
             dr.leftMotorBackward();
             started_moving_t = System.currentTimeMillis();
             forward = false;
           } else {
-            dr.setSpeedLeftMotor(175);
+            dr.setSpeedLeftMotor(150);
             dr.leftMotorForward();
             started_moving_t = System.currentTimeMillis();
             forward = true;

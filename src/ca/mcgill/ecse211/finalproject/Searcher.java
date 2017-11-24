@@ -37,9 +37,6 @@ public class Searcher {
   // The maximum distance (in centimeters) that the robot will move into the search zone
   private static final double CAPTURE_DISTANCE_THRESHOLD = 25.0;
 
-  // The amount of acceptable error that is allowed in the flag color readings
-  private static final double COLOR_ERROR = 0.2;
-
   // The direction in which the robot will be moving while following the search path
   public enum Direction {
     UNKNOWN, CLOCKWISE, COUNTER_CLOCKWISE
@@ -303,9 +300,9 @@ public class Searcher {
 
     // --- DEBUG ---
 
-    for (int i = 0; i < this.path.length; i++) {
-      System.out.println("[ " + this.path[i].x + ", " + this.path[i].y + " ]");
-    }
+//    for (int i = 0; i < this.path.length; i++) {
+//      System.out.println("[ " + this.path[i].x + ", " + this.path[i].y + " ]");
+//    }
 
     // --- DEBUG ---
 
@@ -369,10 +366,18 @@ public class Searcher {
 
         System.exit(1);
     }
-
+    long search_start_time = System.currentTimeMillis();
     // Navigate to each waypoint in the search path.
     for (int i = 0, n = this.path.length; i < n; ++i) {
 
+      if (System.currentTimeMillis() - search_start_time > 20000) {
+        // stop after 20 seconds.
+     // Decrement reference counts on sensors.
+        this.sd.decrementUSRefs();
+        this.sd.decrementColorRefs();
+        return false;
+      }
+      
       this.navigator.setPath(new Waypoint[] { this.path[i] });
 
       // Wait until we have reached the next waypoint.
@@ -588,7 +593,8 @@ public class Searcher {
 
 //    float[] llData = null;
     float sensor_color = -1;
-    while (sensor_color == -1) {
+    long start_checking_time = System.currentTimeMillis();
+    while (sensor_color == -1 && System.currentTimeMillis() - start_checking_time < 2000) {
       try {
         // Sleep a little bit so that the ultrasonic sensor data has time to stabalize.
         Thread.sleep(Searcher.STABALIZE_INTERVAL);
@@ -599,30 +605,17 @@ public class Searcher {
       // It is unlikely that this will return 'null', but still check.
       sensor_color = this.sd.getColorDataLatest();
     }
-
-//    float color = 0.0f;
-//
-//    // Compute the average of the stabalized data value received from the light sensor
-//    // to get a more accurate value of the color in front of us.
-//    for (int i = 0, n = llData.length; i < n; ++i) {
-//      color += llData[i];
-//    }
-//
-//    color /= llData.length;
-
-    // Check if color value is too low.
-//    if (color < Searcher.COLORS[this.color.ordinal()] - Searcher.COLOR_ERROR) {
-//      return false;
-//    }
-//    // Check if color value is too high.
-//    if (color > Searcher.COLORS[this.color.ordinal()] + Searcher.COLOR_ERROR) {
-//      return false;
-//    }
+    
+    boolean found = false;
     
     if (sensor_color != -1 && Searcher.COLORS[MainController.is_red ? MainController.OR : MainController.OG] == sensor_color) {
-      return true;
+      found = true;
     }
-    return false;
+    
+ // Move forward, right up to object.
+    this.driver.moveBackward(distance, false /* = inst_ret */);
+    
+    return found ? true : false;
   }
 
   /**

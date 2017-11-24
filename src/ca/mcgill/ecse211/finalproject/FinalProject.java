@@ -25,7 +25,7 @@ public class FinalProject {
   // --------------------------------------------------------------------------------
 
   // Wifi constants.
-  public static final String SERVER_IP = "192.168.43.173"; // CHANGE THIS TO YOUR COMPUTER'S IP
+  public static final String SERVER_IP = "192.168.2.3"; // CHANGE THIS TO YOUR COMPUTER'S IP
   public static final int TEAM_NB = 6;
   public static final boolean ENABLE_WIFI_DEBUG = false;
   
@@ -34,11 +34,11 @@ public class FinalProject {
 
   // Odometry-related constants
   public static final double WHEEL_RADIUS = 2.1;
-  public static final double WHEEL_BASE = 15.225;
+  public static final double WHEEL_BASE = 15.225; //15.03;
 
   // Driver-related constant
-  public static final int SPEED_FWD = 190;
-  public static final int SPEED_ROT = 125;
+  public static final int SPEED_FWD = 175;
+  public static final int SPEED_ROT = 120;
   public static final float RIGHT_WHEEL_MULT = 1.003f;
 
   // Localization-related constants
@@ -59,7 +59,7 @@ public class FinalProject {
   public static final double ZIPLINE_ORIENTATION = 0.0;						// TODO this will be determined by values inputted over WiFi
   public static final Waypoint ZIPLINE_START_POS = new Waypoint(2, 3);	// TODO this will be determined by values inputted over WiFi
   public static final double ZIPLINE_ORIENTATION_THRESHOLD = Math.toRadians(1); 
-  public static final float ZIPLINE_TRAVERSAL_SPEED = 150.f;
+  public static final float ZIPLINE_TRAVERSAL_SPEED = 200.f;
   public static final double FLOOR_LIGHT_READING = 0.1;		// TODO: calibrate this
   public static final double FLOOR_READING_FILTER = 20;
   
@@ -160,7 +160,10 @@ public class FinalProject {
 //    srch.computeSearchPath();
     
     // Wheel base test
-    //dr.rotate(90, false);
+//    dr.rotate(1080, false);
+    
+    // Straight line test
+//    dr.moveForward(BOARD_TILE_LENGTH * 4, false);
     while (Button.waitForAnyPress() != Button.ID_ESCAPE);
     System.exit(0);
   }

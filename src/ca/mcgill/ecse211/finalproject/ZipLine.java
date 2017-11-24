@@ -157,10 +157,10 @@ public class ZipLine {
 
         if (MainController.ZO_G.x == MainController.ZO_R.x
             || MainController.ZO_G.y == MainController.ZO_R.y) {
-          driver.moveForward(FinalProject.BOARD_TILE_LENGTH * 1.2, false); // move away from the
+          driver.moveForward(FinalProject.BOARD_TILE_LENGTH * 1.4, false); // move away from the
                                                                            // zipline
         } else {
-          driver.moveForward(FinalProject.BOARD_TILE_LENGTH * 1.2, false); // move away from the
+          driver.moveForward(FinalProject.BOARD_TILE_LENGTH * 1.4, false); // move away from the
                                                                            // zipline
         }
         driver.stopBoth(); // stop the main motors

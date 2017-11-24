@@ -52,7 +52,7 @@ public class UltrasonicLocalizer {
   public void localize() {
     sd.incrementUSRefs();
     ref_pos = Localizer.getRefPos();
-    sleepThread(1);
+    sleepThread(0.5f);
     determineMode();
     determineRefAngle();
 
