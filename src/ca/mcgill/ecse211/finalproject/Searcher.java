@@ -429,7 +429,7 @@ public class Searcher {
     // Navigate to each waypoint in the search path.
     for (int i = 0, n = this.path.length; i < n; ++i) {
 
-      if (System.currentTimeMillis() - search_start_time > 20000) {
+      if (System.currentTimeMillis() - search_start_time > 5000) {
         // stop after 20 seconds.
      // Decrement reference counts on sensors.
         this.sd.decrementUSRefs();

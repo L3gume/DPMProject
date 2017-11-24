@@ -81,6 +81,7 @@ public class MainController extends Thread {
   private boolean traversed_zipline = false;
   private boolean has_searched = false;
   private boolean post_river_traversal = false;
+  private boolean red_done = false;
   private boolean finished_demo = false;
 
   /**
@@ -200,10 +201,12 @@ public class MainController extends Thread {
         return State.NAVIGATING;
       }
 
-      if (traversed_zipline && !has_searched) {
+      if (traversed_zipline && has_searched && zipline_loc_done) {
         if (is_red) {
           // That means we are basically done.
-          nav.setPath(new Waypoint[] {new Waypoint(ZO_R.x, redTeamStart.y), redTeamStart}); // probably
+          red_done = true;
+          finished_demo = true;
+          nav.setPath(new Waypoint[] {redTeamStart}); // probably
                                                                                             // needs
                                                                                             // more
                                                                                             // waypoints
@@ -212,6 +215,7 @@ public class MainController extends Thread {
         } else {
           return State.SEARCHING;
         }
+       
         
         if (traversed_zipline && has_searched && !post_river_traversal) {
           if (is_red) {
@@ -223,6 +227,7 @@ public class MainController extends Thread {
         
         if (traversed_zipline && has_searched && post_river_traversal) {
           if (!is_red) {
+            finished_demo = true;
             nav.setPath(new Waypoint[] {greenTeamStart});
           }
         }
@@ -230,6 +235,12 @@ public class MainController extends Thread {
         
         return State.NAVIGATING;
       }
+      
+      // Search after traversing zip line
+      if (!is_red && traversed_zipline && zipline_loc_done && !has_searched) {
+        return State.SEARCHING;
+      }
+      
     } else {
       // Not done yet.
       return State.LOCALIZING;
@@ -256,8 +267,11 @@ public class MainController extends Thread {
           loc.setRefPos(ZO_G);
           return State.LOCALIZING;
         }
-        if (initial_loc_done && has_searched && zipline_loc_done) {
+        if (initial_loc_done && has_searched && zipline_loc_done && !red_done) {
           return State.ZIPLINING;
+        }
+        if (initial_loc_done && has_searched & zipline_loc_done && red_done) {
+          Button.waitForAnyPress();
         }
       } else {
         if (initial_loc_done && !zipline_loc_done) {
@@ -323,10 +337,12 @@ public class MainController extends Thread {
     if (is_red) {
       srch.setLocation(nav.getLastTargetPos());
       srch.setSearchZone(SG_LL, SG_UR);
+      srch.setEnemyZone(Green_LL, Green_UR);
     } else {
       srch.setLocation(zip_red_other);
       srch.setSearchZone(SR_LL, SR_UR);
-    }
+      srch.setEnemyZone(Red_LL, Red_UR);
+   }
     
     srch.computeSearchPath();
     boolean found = srch.search();
